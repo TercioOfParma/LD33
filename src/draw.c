@@ -27,6 +27,19 @@ void drawMenuButtons(entity **menuButtons, SDL_Renderer *render)
 
 
 }
+void drawGameButtons(entity **gameButtons, SDL_Renderer *render, options *opt)
+{
+	int looper;
+	for(looper = 0; looper < opt->NO_BUTTONS - 2; looper++)
+	{
+
+		drawEntity(gameButtons[looper], render);
+	
+	}
+
+
+
+}
 
 void drawBaseEntity(baseEntity *toDraw, SDL_Renderer *render)
 {	

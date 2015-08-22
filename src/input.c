@@ -7,9 +7,9 @@
 
 int checkButtonClicked(baseEntity *mouse, entity *startButton, SDL_Event *events)
 {
-	if(SDL_HasIntersection(&(mouse->dimensions), &(startButton->posAndHitbox)) == SUCCESS && events->type == SDL_MOUSEBUTTONDOWN)
-	{
-	
+	if(SDL_HasIntersection(&(mouse->dimensions), &(startButton->posAndHitbox)) == SDL_TRUE)
+	{	
+		
 		return SUCCESS;
 	
 	}

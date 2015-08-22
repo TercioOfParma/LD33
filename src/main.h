@@ -63,7 +63,7 @@ typedef enum
 }sideData;
 typedef struct
 {
-	int SCREEN_WIDTH, SCREEN_HEIGHT, SAMPLE_FREQUENCY, NO_CHANNELS, SAMPLE_SIZE,R_COL, G_COL, B_COL, A_COL, NO_BUTTONS, NO_CORPSES, NO_SPRITES, QUIT_OFFSET;
+	int SCREEN_WIDTH, SCREEN_HEIGHT, SAMPLE_FREQUENCY, NO_CHANNELS, SAMPLE_SIZE,R_COL, G_COL, B_COL, A_COL, NO_BUTTONS, NO_CORPSES, NO_SPRITES, QUIT_OFFSET, BUTTON_TRANSPARENCY;
 	const char *title_img, *start_button, *quit_button, *title, *sprite_path, *corpses_path, *buttons_path, *map_path;
 	double SCALE_FACTOR;
 }options;
@@ -108,17 +108,21 @@ entity *initTitle(baseEntity animation, int *success, options *opt);
 baseEntity **loadButtons(SDL_Renderer *render, int *success, options *opt);
 baseEntity **loadSprites(SDL_Renderer *render, int *success, options *opt);
 baseEntity **loadCorpses(SDL_Renderer *render, int *success, options *opt);
+entity **createMenuButtons(baseEntity **buttons, int *success, options *opt);
+baseEntity *loadMap(const char *filename, SDL_Renderer *render, int *success, options *opt);
+entity **createGameButtons(baseEntity **buttons, int *success, options *opt);
+
+//deinit functions
+void freeEntityArray(entity **array, int size);
 void freeButtons(baseEntity **buttons, options *opt);
 void freeSprites(baseEntity **sprites, options *opt);
 void freeCorpses(baseEntity **corpses, options *opt);
-entity **createMenuButtons(baseEntity **buttons, int *success, options *opt);
-baseEntity *loadMap(const char *filename, SDL_Renderer *render, int *success, options *opt);
-
 
 //draw functions
 void drawMenuButtons(entity **menuButtons, SDL_Renderer *render);
 void drawEntity(entity *toDraw, SDL_Renderer *render);
 void drawBaseEntity(baseEntity *toDraw, SDL_Renderer *render);
+void drawGameButtons(entity **gameButtons, SDL_Renderer *render, options *opt);
 
-//inputFunctions
+//input Functions
 int checkButtonClicked(baseEntity *mouse, entity *startButton, SDL_Event *events);

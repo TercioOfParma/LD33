@@ -44,3 +44,17 @@ void freeCorpses(baseEntity **corpses, options *opt)
 	free(corpses);
 
 }
+void freeEntityArray(entity **array, int size)
+{
+		int looper;
+
+	for(looper = 0; looper < size; looper++)
+	{
+		SDL_DestroyTexture(array[looper]->liveAnimation);
+		SDL_DestroyTexture(array[looper]->deadAnimation);
+	}
+	free(*array);
+	free(array);
+
+
+}

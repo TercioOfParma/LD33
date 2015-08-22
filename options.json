@@ -22,6 +22,7 @@
 		"SPRITE_PATH" : "gfx/sprites/",
 		"CORPSE_PATH" : "gfx/corpses/",
 		"MAP_PATH" : "gfx/map.png",
-		"QUIT_OFFSET" : 200
+		"QUIT_OFFSET" : 100,
+		"BUTTON_TRANSPARENCY" : 240
 	}
 ]

@@ -96,6 +96,7 @@ options initOptions(const char *jsonFile, int *success)
 	tempOpt.NO_CORPSES= json_integer_value(json_object_get(optionsData,"NO_CORPSES"));
 	tempOpt.NO_SPRITES= json_integer_value(json_object_get(optionsData,"NO_SPRITE"));
 	tempOpt.QUIT_OFFSET= json_integer_value(json_object_get(optionsData,"QUIT_OFFSET"));
+	tempOpt.BUTTON_TRANSPARENCY= json_integer_value(json_object_get(optionsData,"BUTTON_TRANSPARENCY"));
 	tempOpt.SCALE_FACTOR = json_number_value(json_object_get(optionsData,"SCALE_FACTOR"));
 	
 
@@ -397,6 +398,33 @@ baseEntity *loadMap(const char *filename, SDL_Renderer *render, int *success, op
 	temp->dimensions.w = opt->SCREEN_WIDTH;
 	temp->dimensions.h = opt->SCREEN_HEIGHT;
 	
+	return temp;
+
+}
+
+entity **createGameButtons(baseEntity **buttons, int *success, options *opt)
+{
+	entity **temp = malloc(sizeof(entity *) * (opt->NO_BUTTONS - 2));
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	
+	}
+	int looper, yOffset;
+	yOffset = 0;
+	for(looper = 0; looper < (opt->NO_BUTTONS) - 2; looper++)
+	{
+		
+		temp[looper] = initEntity(looper, NO_SIDE, *(buttons[looper]), *(buttons[looper]), success, opt);
+		temp[looper]->posAndHitbox.x = 0;
+		temp[looper]->posAndHitbox.y = yOffset;
+		yOffset += opt->QUIT_OFFSET;
+		SDL_SetTextureAlphaMod(temp[looper]->liveAnimation, opt->BUTTON_TRANSPARENCY);
+	
+	}
+
 	return temp;
 
 }
