@@ -1,0 +1,19 @@
+[
+	{
+		"SCREEN_WIDTH" : 1280,
+		"SCREEN_HEIGHT" : 720,
+		"QUIT_IMG" : "gfx/quit_button.png",
+		"START_IMG" : "gfx/start_button.png",
+		"TITLE_IMG" : "gfx/title.png",
+		"TITLE" : "Futility",
+		"SAMPLE_FREQUENCY" : 44000,
+		"SAMPLE_SIZE" : 2048,
+		"NO_CHANNELS" : 2,
+		"BG_COLOR_R" : 255,
+		"BG_COLOR_G" : 255,
+		"BG_COLOR_B" : 255,
+		"BG_COLOR_A" : 70,
+		"SCALE_FACTOR" : 0.5,
+		"FRAMES_PER_ANIM" : 10
+	}
+]
