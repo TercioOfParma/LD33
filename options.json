@@ -14,6 +14,14 @@
 		"BG_COLOR_B" : 255,
 		"BG_COLOR_A" : 70,
 		"SCALE_FACTOR" : 0.5,
-		"FRAMES_PER_ANIM" : 10
+		"FRAMES_PER_ANIM" : 10,
+		"NO_BUTTONS" : 8,
+		"NO_SPRITES" : 8,
+		"NO_CORPSES" : 10,
+		"BUTTON_PATH" : "gfx/buttons/",
+		"SPRITE_PATH" : "gfx/sprites/",
+		"CORPSE_PATH" : "gfx/corpses/",
+		"MAP_PATH" : "gfx/map.png",
+		"QUIT_OFFSET" : 200
 	}
 ]

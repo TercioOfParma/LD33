@@ -49,9 +49,9 @@ int getFileSize(FILE *sizeToGet, int *success)
 	return fileSize;
 
 }
-options initOptions(char *jsonFile, int *success)
+options initOptions(const char *jsonFile, int *success)
 {
-	fprintf(stderr, "%s", jsonFile);
+	
 	options tempOpt;
 	json_t *tempJsonHandle, *optionsData;
 	json_error_t errorHandle;
@@ -80,6 +80,10 @@ options initOptions(char *jsonFile, int *success)
 	tempOpt.title_img = json_string_value(json_object_get(optionsData,"TITLE_IMG"));
 	tempOpt.start_button = json_string_value(json_object_get(optionsData,"START_IMG"));
 	tempOpt.quit_button = json_string_value(json_object_get(optionsData,"QUIT_IMG"));
+	tempOpt.corpses_path = json_string_value(json_object_get(optionsData,"CORPSE_PATH"));
+	tempOpt.sprite_path = json_string_value(json_object_get(optionsData,"SPRITE_PATH"));
+	tempOpt.buttons_path = json_string_value(json_object_get(optionsData,"BUTTON_PATH"));
+	tempOpt.map_path = json_string_value(json_object_get(optionsData,"MAP_PATH"));
 	tempOpt.title = json_string_value(json_object_get(optionsData, "TITLE"));
 	tempOpt.SAMPLE_SIZE = json_integer_value(json_object_get(optionsData,"SAMPLE_SIZE"));
 	tempOpt.SAMPLE_FREQUENCY = json_integer_value(json_object_get(optionsData,"SAMPLE_FREQUENCY"));
@@ -88,6 +92,10 @@ options initOptions(char *jsonFile, int *success)
 	tempOpt.G_COL = json_integer_value(json_object_get(optionsData,"BG_COLOR_G"));
 	tempOpt.B_COL = json_integer_value(json_object_get(optionsData,"BG_COLOR_B"));
 	tempOpt.A_COL = json_integer_value(json_object_get(optionsData,"BG_COLOR_A"));
+	tempOpt.NO_BUTTONS = json_integer_value(json_object_get(optionsData,"NO_BUTTONS"));
+	tempOpt.NO_CORPSES= json_integer_value(json_object_get(optionsData,"NO_CORPSES"));
+	tempOpt.NO_SPRITES= json_integer_value(json_object_get(optionsData,"NO_SPRITE"));
+	tempOpt.QUIT_OFFSET= json_integer_value(json_object_get(optionsData,"QUIT_OFFSET"));
 	tempOpt.SCALE_FACTOR = json_number_value(json_object_get(optionsData,"SCALE_FACTOR"));
 	
 
@@ -172,7 +180,7 @@ SDL_Renderer *createRenderer(SDL_Window *screen, int *success)
 	return temp;
 }
 
-Mix_Music *loadMusic(char *filename, int *success)
+Mix_Music *loadMusic(const char *filename, int *success)
 {
 	Mix_Music *temp = Mix_LoadMUS(filename);
 	if(!temp)
@@ -184,7 +192,7 @@ Mix_Music *loadMusic(char *filename, int *success)
 
 	return temp;
 }
-Mix_Chunk *loadEffect(char *filename, int *success)
+Mix_Chunk *loadEffect(const char *filename, int *success)
 {
 	Mix_Chunk *temp = Mix_LoadWAV(filename);
 	if(!temp)
@@ -197,7 +205,7 @@ Mix_Chunk *loadEffect(char *filename, int *success)
 	return temp;
 }
 
-TTF_Font *LoadFont(char *filename, int size, int *success)
+TTF_Font *LoadFont(const char *filename, int size, int *success)
 {
 	TTF_Font *temp = TTF_OpenFont(filename, size);
 	if(!temp)
@@ -210,7 +218,7 @@ TTF_Font *LoadFont(char *filename, int size, int *success)
 	return temp;
 }
 
-SDL_Texture *loadImage(char *filename, SDL_Renderer *render, SDL_Rect *dimen,  SDL_Texture *original , options *opt, int *success)
+SDL_Texture *loadImage(const char *filename, SDL_Renderer *render, SDL_Rect *dimen,  SDL_Texture *original , options *opt, int *success)
 {
 	SDL_DestroyTexture(original);
 	SDL_Surface *temp;
@@ -238,9 +246,15 @@ SDL_Texture *loadImage(char *filename, SDL_Renderer *render, SDL_Rect *dimen,  S
 
 }
 
-baseEntity *initBaseEntity(char *filename, SDL_Renderer *render, int *success, options *opt)
+baseEntity *initBaseEntity(const char *filename, SDL_Renderer *render, int *success, options *opt)
 {
 	baseEntity *temp = malloc(sizeof(baseEntity));
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	}
 	temp->dimensions.x = 0;
 	temp->dimensions.y = 0;
 	
@@ -259,6 +273,12 @@ baseEntity *initBaseEntity(char *filename, SDL_Renderer *render, int *success, o
 entity *initEntity(int desiredType, int side,  baseEntity liveAnimation, baseEntity deadAnimation, int *success, options *opt)
 {
 	entity *temp = malloc(sizeof(entity));
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	}
 	temp->type = desiredType;
 	temp->side = side;
 	temp->liveAnimation = liveAnimation.tex;
@@ -268,6 +288,114 @@ entity *initEntity(int desiredType, int side,  baseEntity liveAnimation, baseEnt
 		temp->deadAnimation = deadAnimation.tex;
 	
 	}
+	temp->isAnimated = SUCCESS;
+	temp->angle = 0;
+	return temp;
+
+}
+
+entity *initTitle(baseEntity animation, int *success, options *opt)
+{
+	entity *temp;
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	}
+	temp = initEntity(TITLE, NO_SIDE, animation, animation, success, opt);
+	temp->posAndHitbox.y = (opt->SCREEN_HEIGHT / 5);
+	temp->posAndHitbox.x = (opt->SCREEN_WIDTH / 3);
+	
+
+	return temp;
+}
+baseEntity **loadButtons(SDL_Renderer *render, int *success, options *opt)
+{
+	baseEntity **temp = malloc(sizeof( baseEntity *) * opt->NO_BUTTONS);
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	}
+	int looper;
+	char filename[MAX_LINE];
+	for(looper = 0; looper < opt->NO_BUTTONS; looper++)
+	{
+		sprintf(filename, "%s%d.png", opt->buttons_path, looper);
+		temp[looper] = initBaseEntity(filename, render, success, opt);
+		filename[0] = '\0';
+	}
+	return temp;
+
+
+}
+baseEntity **loadSprites(SDL_Renderer *render, int *success, options *opt)
+{
+	baseEntity **temp = malloc(sizeof( baseEntity *) * opt->NO_SPRITES);
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	}
+	int looper;
+	char filename[MAX_LINE];
+	for(looper = 0; looper < opt->NO_SPRITES; looper++)
+	{
+		sprintf(filename, "%s%d.png", opt->sprite_path, looper);
+		temp[looper] = initBaseEntity(filename, render, success, opt);
+		filename[0] = '\0';
+	}
+	return temp;
+
+}
+baseEntity **loadCorpses(SDL_Renderer *render, int *success, options *opt)
+{
+	baseEntity **temp = malloc(sizeof( baseEntity *) * opt->NO_CORPSES);
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	}
+	int looper;
+	char filename[MAX_LINE];
+	for(looper = 0; looper < opt->NO_CORPSES; looper++)
+	{
+		sprintf(filename, "%s%d.png", opt->corpses_path, looper);
+		temp[looper] = initBaseEntity(filename, render, success, opt);
+		filename[0] = '\0';
+	}
+
+	return temp;
+}
+entity **createMenuButtons(baseEntity **buttons, int *success, options *opt)
+{
+	entity **temp = malloc(sizeof(entity *) * 2);
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	
+	}
+	temp[0] = initEntity(START, NO_SIDE, *(buttons[STARTBUT]), *(buttons[STARTBUT]), success, opt);
+	temp[1] = initEntity(QUIT, NO_SIDE, *(buttons[QUITBUT]), *(buttons[QUITBUT]), success, opt);
+	temp[0]->posAndHitbox.x = opt->SCREEN_WIDTH / 2;
+	temp[1]->posAndHitbox.x = opt->SCREEN_WIDTH / 2;
+	temp[0]->posAndHitbox.y = opt->SCREEN_HEIGHT / 2;
+	temp[1]->posAndHitbox.y = (opt->SCREEN_HEIGHT / 2) + opt->QUIT_OFFSET;
+	return temp;
+}
+
+baseEntity *loadMap(const char *filename, SDL_Renderer *render, int *success, options *opt)//(const char *filename, SDL_Renderer *render, SDL_Rect *dimen,  SDL_Texture *original , options *opt, int *success)
+{
+	baseEntity *temp;
+	temp = initBaseEntity(filename, render, success, opt);
+	temp->dimensions.w = opt->SCREEN_WIDTH;
+	temp->dimensions.h = opt->SCREEN_HEIGHT;
 	
 	return temp;
 
