@@ -5,23 +5,29 @@
 
 int main(int argc, char *argv[])
 {
-	int isSuccess;
-	char *jsonContents, inBattle;
+	srand(time(NULL));
+	int isSuccess, inBattle, germanHP, britishHP;
+	char *jsonContents, *soldierData;
 	options mainOpt;
 	SDL_Window *mainWin;
 	SDL_Renderer *render;
 	SDL_Event eventHandler;
 	baseEntity *title, **buttons, **sprites, **dead, *map;
+	soldiers *germans, *british;
+	unitData **allUnits;
 	baseEntity mouse;
 	entity *titleToDisp;
-	entity **titleElements, **unitElements;
+	entity **titleElements, **unitElements, **units;
+	Mix_Chunk **deathSounds;
+	
 	isSuccess = SUCCESS;
 	inBattle = FAIL;
 	jsonContents = loadJsonFile(OPTIONS_FILE,&isSuccess);
+	soldierData = loadJsonFile(SOLDIERS_FILE, &isSuccess);
 	mainOpt = initOptions(jsonContents, &isSuccess);
+	allUnits = loadUnitData(soldierData, &isSuccess, &mainOpt);
 	mainWin = initSDL(&mainOpt, &isSuccess);
 	render = createRenderer(mainWin, &isSuccess);
-	
 	title = initBaseEntity(mainOpt.title_img, render, &isSuccess, &mainOpt);
 	titleToDisp = initTitle(*title, &isSuccess, &mainOpt);
 	buttons = loadButtons(render,&isSuccess, &mainOpt); 
@@ -30,11 +36,18 @@ int main(int argc, char *argv[])
 	titleElements = createMenuButtons(buttons, &isSuccess, &mainOpt);
 	map = loadMap(mainOpt.map_path, render, &isSuccess, &mainOpt);  
 	unitElements = createGameButtons(buttons, &isSuccess, &mainOpt);
+	units = loadUnits(allUnits, sprites, &isSuccess, &mainOpt);
+	deathSounds = loadDeathSounds();
 	mouse.dimensions.w = 1;
 	mouse.dimensions.h = 1;
+	british = createArmy(allUnits[BRITMGSPR],BRITISH,sprites[BRITMGSPR], &isSuccess, &mainOpt);
+	germans = createArmy(allUnits[GERMMGSPR],GERMAN,sprites[GERMMGSPR], &isSuccess, &mainOpt);
+	germanHP = mainOpt.HP_PER_SIDE;
+	britishHP = mainOpt.HP_PER_SIDE;
 	while(isSuccess == SUCCESS)
 	{
 		SDL_GetMouseState(&(mouse.dimensions.x), &(mouse.dimensions.y));
+		
 		while(SDL_PollEvent(&eventHandler) != 0)
 		{
 			if(eventHandler.type == SDL_QUIT)
@@ -42,20 +55,23 @@ int main(int argc, char *argv[])
 				isSuccess = FAIL;
 			
 			}
-			if(eventHandler.type == SDL_MOUSEBUTTONDOWN)
+			if(eventHandler.type == SDL_MOUSEBUTTONDOWN && inBattle != SUCCESS)
+			{
+				handleMenuButtons(titleElements, &mouse, &eventHandler, &inBattle, &isSuccess);
+			
+			}
+			else if(eventHandler.type == SDL_MOUSEBUTTONDOWN && inBattle == SUCCESS)
 			{
 				
-				if(checkButtonClicked(&mouse, titleElements[0], &eventHandler) == SUCCESS && inBattle != SUCCESS)
-				{
+				handleGameButtons(unitElements, units, dead,  british, &mouse, &eventHandler, &isSuccess, &mainOpt, deathSounds);
 				
-					inBattle = SUCCESS;
+				fprintf(stderr,"%d\n", british->no_men);
+			}
+			else if(eventHandler.type == SDL_KEYDOWN && inBattle == SUCCESS)
+			{
+				handleKeyboard(units, dead, germans, &eventHandler, &isSuccess, &mainOpt, deathSounds);
 				
-				}
-				if(checkButtonClicked(&mouse, titleElements[1], &eventHandler) == SUCCESS & isSuccess == SUCCESS)
-				{
-					isSuccess = FAIL;
-				
-				}
+			
 			}
 		
 		}
@@ -71,9 +87,24 @@ int main(int argc, char *argv[])
 		{
 			drawBaseEntity(map, render);
 			drawGameButtons(unitElements, render, &mainOpt);
+			drawArmy(british, render);
+			drawArmy(germans, render);
+			moveArmy(british);
+			moveArmy(germans);
+			germanHP += checkScoreSide(british,0);
+			britishHP += checkScoreSide(germans, mainOpt.SCREEN_WIDTH);
+			if(britishHP < 0 || germanHP < 0)
+			{
+				isSuccess = FAIL;
+			
+			}
+			
 		}
+		
 		SDL_RenderPresent(render);
 	}
+	freeEntityArray(british->men, british->no_men);
+	freeEntityArray(germans->men, germans->no_men);
 	freeEntityArray(titleElements, 2);
 	freeEntityArray(unitElements, 6);
 	freeButtons(buttons, &mainOpt);

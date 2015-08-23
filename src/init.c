@@ -94,9 +94,13 @@ options initOptions(const char *jsonFile, int *success)
 	tempOpt.A_COL = json_integer_value(json_object_get(optionsData,"BG_COLOR_A"));
 	tempOpt.NO_BUTTONS = json_integer_value(json_object_get(optionsData,"NO_BUTTONS"));
 	tempOpt.NO_CORPSES= json_integer_value(json_object_get(optionsData,"NO_CORPSES"));
-	tempOpt.NO_SPRITES= json_integer_value(json_object_get(optionsData,"NO_SPRITE"));
+	tempOpt.NO_SPRITES= json_integer_value(json_object_get(optionsData,"NO_SPRITES"));
+	tempOpt.NO_SOUNDS= json_integer_value(json_object_get(optionsData,"NO_SOUNDS"));
 	tempOpt.QUIT_OFFSET= json_integer_value(json_object_get(optionsData,"QUIT_OFFSET"));
 	tempOpt.BUTTON_TRANSPARENCY= json_integer_value(json_object_get(optionsData,"BUTTON_TRANSPARENCY"));
+	tempOpt.NO_UNITS = json_integer_value(json_object_get(optionsData,"NO_UNITS"));
+	tempOpt.SQUAD_SIZE = json_integer_value(json_object_get(optionsData,"SQUAD_SIZE"));
+	tempOpt.HP_PER_SIDE = json_integer_value(json_object_get(optionsData,"HP_OF_SIDE"));
 	tempOpt.SCALE_FACTOR = json_number_value(json_object_get(optionsData,"SCALE_FACTOR"));
 	
 
@@ -195,6 +199,10 @@ Mix_Music *loadMusic(const char *filename, int *success)
 }
 Mix_Chunk *loadEffect(const char *filename, int *success)
 {
+	if(strstr(filename, NO_SOUND))
+	{
+		return NULL;
+	}
 	Mix_Chunk *temp = Mix_LoadWAV(filename);
 	if(!temp)
 	{
@@ -232,7 +240,7 @@ SDL_Texture *loadImage(const char *filename, SDL_Renderer *render, SDL_Rect *dim
 		return NULL;
 	
 	}
-	SDL_SetColorKey(temp, SDL_TRUE, SDL_MapRGB(temp->format, 255,255,255));
+	SDL_SetColorKey(temp, SDL_TRUE, SDL_MapRGB(temp->format, 255,0,255));
 	tempTex = SDL_CreateTextureFromSurface(render, temp);
 	if(!tempTex)
 	{
@@ -242,6 +250,7 @@ SDL_Texture *loadImage(const char *filename, SDL_Renderer *render, SDL_Rect *dim
 	}
 	dimen->w = temp->w * opt->SCALE_FACTOR;
 	dimen->h = temp->h * opt->SCALE_FACTOR;
+	
 	SDL_FreeSurface(temp);
 	return tempTex;
 
@@ -384,6 +393,8 @@ entity **createMenuButtons(baseEntity **buttons, int *success, options *opt)
 	}
 	temp[0] = initEntity(START, NO_SIDE, *(buttons[STARTBUT]), *(buttons[STARTBUT]), success, opt);
 	temp[1] = initEntity(QUIT, NO_SIDE, *(buttons[QUITBUT]), *(buttons[QUITBUT]), success, opt);
+	temp[0]->frame.x = INVALID_RECT;
+	temp[1]->frame.x = INVALID_RECT;
 	temp[0]->posAndHitbox.x = opt->SCREEN_WIDTH / 2;
 	temp[1]->posAndHitbox.x = opt->SCREEN_WIDTH / 2;
 	temp[0]->posAndHitbox.y = opt->SCREEN_HEIGHT / 2;
@@ -422,9 +433,220 @@ entity **createGameButtons(baseEntity **buttons, int *success, options *opt)
 		temp[looper]->posAndHitbox.y = yOffset;
 		yOffset += opt->QUIT_OFFSET;
 		SDL_SetTextureAlphaMod(temp[looper]->liveAnimation, opt->BUTTON_TRANSPARENCY);
-	
+		temp[looper]->frame.x = INVALID_RECT;
 	}
 
 	return temp;
+
+}
+
+entity *loadMachineGun(unitData *mGData, int side, baseEntity *mGTex, int *success, options *opt)
+{
+	entity *temp = initEntity(mGData->ID, side, *mGTex, *mGTex, success, opt);
+	temp->cost = mGData->cost;
+	temp->isAnimated = SUCCESS;
+
+	return temp;
+}
+
+unitData **loadUnitData(const char *file, int *success, options *opt)
+{
+	unitData **temp = malloc(sizeof(unitData *) * opt->NO_UNITS);
+	json_t *dataHold, *unitEntry;
+	json_error_t errorHandle;
+	int looper;
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	
+	}
+	
+	dataHold = json_loads(file,0,&errorHandle);
+	
+	if(!dataHold)
+	{
+		fprintf(stderr, "json_loads has failed : %s", errorHandle.text);
+		*success = FAIL;
+		return NULL;
+	}
+	
+	for(looper = 0; looper < opt->NO_UNITS; looper++)
+	{
+		temp[looper] = malloc(sizeof(unitData));
+
+		if(!temp[looper])
+		{
+			fprintf(stderr, "malloc has failed : %s", strerror(errno));
+			*success = FAIL;
+			return NULL;
+		
+		}
+		unitEntry = json_array_get(dataHold, looper);
+		if(!json_is_object(unitEntry))
+		{
+			fprintf(stderr, "json_array_get has failed, not an object");
+		
+		}
+		temp[looper]->ID = json_integer_value(json_object_get(unitEntry,"ID"));
+		temp[looper]->cost = json_integer_value(json_object_get(unitEntry,"cost"));
+		temp[looper]->side = json_integer_value(json_object_get(unitEntry,"side"));
+		temp[looper]->speed = json_integer_value(json_object_get(unitEntry,"speed"));
+		temp[looper]->entrance_filename = json_string_value(json_object_get(unitEntry,"entrance_sound_path"));
+		
+	
+	}
+	
+	return temp;
+}
+
+
+entity **loadUnits(unitData **data, baseEntity **textures, int *success, options *opt)
+{
+	entity **temp = malloc(sizeof(entity *) * opt->NO_UNITS);
+	int looper;
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	
+	}
+	for(looper = 0; looper < opt->NO_UNITS; looper++)
+	{
+		temp[looper] = initEntity(data[looper]->ID, data[looper]->side, *(textures[looper]), *(textures[looper]), success, opt);
+		temp[looper]->entranceSound = loadEffect(data[looper]->entrance_filename, success);
+		temp[looper]->speed = data[looper]->speed;
+	}
+	
+	return temp;
+}
+soldiers *createArmy(unitData *mGData, int side, baseEntity *mGText, int *success, options *opt)
+{
+	soldiers *temp = malloc(sizeof(soldiers));
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	
+	}
+	temp->no_men = 1;
+	temp->men = malloc(sizeof(entity) * temp->no_men);
+	temp->men[0] = loadMachineGun(mGData, side, mGText, success, opt);
+	temp->men[0]->isAnimated = TRUE;
+	fprintf(stderr, "%s\n", mGData->entrance_filename);
+	temp->men[0]->entranceSound = loadEffect(mGData->entrance_filename,success);
+	if(side == BRITISH)
+	{
+		temp->men[0]->posAndHitbox.x = opt->SCREEN_WIDTH - opt->QUIT_OFFSET;
+		temp->men[0]->posAndHitbox.y = opt->SCREEN_HEIGHT - opt->QUIT_OFFSET;
+	
+	}
+	else
+	{
+		temp->men[0]->posAndHitbox.x = opt->QUIT_OFFSET;
+		temp->men[0]->posAndHitbox.y = opt->QUIT_OFFSET;
+	
+	}
+	return temp;
+}
+
+void newSquad(soldiers *army, options *opt, entity *unitType, baseEntity **corpses, int *success, Mix_Chunk **deathsounds)
+{
+	army->men = realloc(army->men, (opt->SQUAD_SIZE + army->no_men) * sizeof(entity *));
+	int looper, new_size, start, corpse, yCoord, deathSound;
+	baseEntity temp;
+	temp.tex = unitType->liveAnimation;
+	temp.dimensions = unitType->posAndHitbox;
+	start = army->no_men; //end of the array
+	new_size = army->no_men + opt->SQUAD_SIZE;
+	for(looper = start; looper < new_size; looper++)
+	{
+
+		corpse = rand() % opt->NO_CORPSES;
+		yCoord = rand () % opt->SCREEN_HEIGHT;
+		deathSound = rand() % 6;
+		army->men[looper] = initEntity(unitType->type, unitType->side, temp, *(corpses[corpse]), success, opt);
+		if(unitType->side == GERMAN)
+		{
+			army->men[looper]->angle = 90;
+			army->men[looper]->posAndHitbox.x = opt->QUIT_OFFSET;
+		}
+		else
+		{
+			army->men[looper]->angle = 270;
+			army->men[looper]->posAndHitbox.x = opt->SCREEN_WIDTH - opt->QUIT_OFFSET;
+		}
+		army->men[looper]->posAndHitbox.y = yCoord;
+		army->men[looper]->entranceSound = unitType->entranceSound;
+		army->men[looper]->frame.w = 64;
+		army->men[looper]->frame.h = 64;
+		army->men[looper]->frame.x = 0;
+		army->men[looper]->frame.y = 0;
+		army->men[looper]->deathSound = deathsounds[deathSound];
+		
+		army->men[looper]->speed = unitType->speed;
+		army->men[looper]->side = unitType->side;
+		
+	
+		
+	}
+	
+	Mix_PlayChannel(-1,army->men[looper -1]->entranceSound,0);
+	
+	army->no_men = new_size;
+
+}
+Mix_Chunk **loadDeathSounds(int *success)
+{
+	Mix_Chunk **temp = malloc(sizeof(Mix_Chunk *) * 6);
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	
+	}
+	//cba
+	temp[0] = loadEffect("audio/death_sound_1.wav", success);
+	temp[1] = loadEffect("audio/death_sound_2.wav", success);
+	temp[2] = loadEffect("audio/death_sound_3.wav", success);
+	temp[3] = loadEffect("audio/death_sound_4.wav", success);
+	temp[4] = loadEffect("audio/death_sound_5.wav", success);
+	temp[5] = loadEffect("audio/death_sound_6.wav", success);
+
+	
+	return temp;
+
+}
+void killAll(soldiers *army)
+{
+	int looper,derp;
+	derp = 0;
+	double angleOfDeath;
+	for(looper = 1; looper < army->no_men; looper++)
+	{
+		angleOfDeath = rand() % 360;
+		if(army->men[looper]->isAnimated != FAIL)
+		{
+			army->men[looper]->angle = angleOfDeath;
+		}
+		if(derp < 3)
+		{
+			if(army->men[looper]->isAnimated != FAIL)
+			{
+				derp++;
+				Mix_PlayChannel(-1,army->men[looper]->deathSound,0);
+			}
+		}
+		fprintf(stderr,"%d", army->no_men);
+		army->men[looper]->isAnimated = FAIL;
+		
+	
+	}
+
+
 
 }

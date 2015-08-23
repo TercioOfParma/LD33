@@ -7,8 +7,8 @@
 		"TITLE_IMG" : "gfx/title.png",
 		"TITLE" : "Futility",
 		"SAMPLE_FREQUENCY" : 44000,
-		"SAMPLE_SIZE" : 2048,
-		"NO_CHANNELS" : 2,
+		"SAMPLE_SIZE" : 4096,
+		"NO_CHANNELS" : 4,
 		"BG_COLOR_R" : 255,
 		"BG_COLOR_G" : 255,
 		"BG_COLOR_B" : 255,
@@ -23,6 +23,10 @@
 		"CORPSE_PATH" : "gfx/corpses/",
 		"MAP_PATH" : "gfx/map.png",
 		"QUIT_OFFSET" : 100,
-		"BUTTON_TRANSPARENCY" : 240
+		"BUTTON_TRANSPARENCY" : 240,
+		"NO_UNITS" : 8,
+		"NO_SOUNDS" : 15,
+		"SQUAD_SIZE" : 5,
+		"HP_OF_SIDE" : 10
 	}
 ]

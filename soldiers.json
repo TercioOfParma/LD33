@@ -1,0 +1,59 @@
+[
+	{
+		"ID" : 0,
+		"cost" : 100,
+		"entrance_sound_path" : "audio/britain_join_2.wav",
+		"side" : 1,
+		"speed" : 4
+	},
+	{
+		"ID" : 1,
+		"cost" : 50,
+		"entrance_sound_path" : "audio/britain_join_1.wav",
+		"side" : 1,
+		"speed" : 2
+	},
+	{
+		"ID" : 2,
+		"cost" : 150,
+		"entrance_sound_path" : "audio/artillery.wav",
+		"side" : 0,
+		"speed" : 0
+	},
+	{
+		"ID" : 3,
+		"cost" : 50,
+		"entrance_sound_path" : "audio/german_join_2.wav",
+		"side" : 2,
+		"speed" : 2
+	},
+	{
+		"ID" : 4,
+		"cost" : 100,
+		"entrance_sound_path" : "audio/german_join_1.wav",
+		"side" : 2,
+		"speed" : 4
+	},
+
+	{
+		"ID" : 5,
+		"cost" : 200,
+		"entrance_sound_path" : "NA",
+		"side" : 0,
+		"speed" : 0
+	},
+	{
+		"ID" : 6,
+		"cost" : -1,
+		"entrance_sound_path" : "audio/lewis_gun.wav",
+		"side" : 1,
+		"speed" : 0
+	},
+	{
+		"ID" : 7,
+		"cost" : -1,
+		"entrance_sound_path" : "audio/maxim_gun.wav",
+		"side" : 2,
+		"speed" : 0
+	}
+]

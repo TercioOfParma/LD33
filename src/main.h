@@ -11,7 +11,13 @@ const static int SUCCESS = 1;
 const static int FAIL = 2;
 const static char *OPTIONS_FILE = "options.json";
 const static int MAX_LINE = 80;
-
+const static int START_BUT_MENU = 0;
+const static int QUIT_BUT_MENU = 1;
+const static char *NO_SOUND = "NA";
+const static char *SOLDIERS_FILE = "soldiers.json";
+const static int TRUE = 1;
+const static int FALSE = 0;
+const static int INVALID_RECT = 123456;
 typedef enum
 {
 	ANZACBUY,
@@ -55,25 +61,33 @@ typedef enum
 typedef enum
 {
 	NO_SIDE,
-	GERMAN,
-	BRITISH
-
-
-
+	BRITISH,
+	GERMAN
 }sideData;
+typedef enum
+{
+	DEATH_SOUND_1,
+	DEATH_SOUND_2,
+	DEATH_SOUND_3,
+	DEATH_SOUND_4,
+	DEATH_SOUND_5,
+	DEATH_SOUND_6,
+}audioData;
+
 typedef struct
 {
-	int SCREEN_WIDTH, SCREEN_HEIGHT, SAMPLE_FREQUENCY, NO_CHANNELS, SAMPLE_SIZE,R_COL, G_COL, B_COL, A_COL, NO_BUTTONS, NO_CORPSES, NO_SPRITES, QUIT_OFFSET, BUTTON_TRANSPARENCY;
+	int SCREEN_WIDTH, SCREEN_HEIGHT, SAMPLE_FREQUENCY, NO_CHANNELS, SAMPLE_SIZE,R_COL, G_COL, B_COL, A_COL, NO_BUTTONS, NO_CORPSES, NO_SPRITES, QUIT_OFFSET, BUTTON_TRANSPARENCY, NO_UNITS, NO_SOUNDS, SQUAD_SIZE, HP_PER_SIDE;
 	const char *title_img, *start_button, *quit_button, *title, *sprite_path, *corpses_path, *buttons_path, *map_path;
 	double SCALE_FACTOR;
 }options;
 typedef struct
 {
-	int type, speed, side;
+	int type, speed, side, cost;
 	char isAnimated;
 	double angle;
 	SDL_Texture *liveAnimation, *deadAnimation;//these will simply point to base textures
-	SDL_Rect posAndHitbox;
+	SDL_Rect posAndHitbox, frame;
+	Mix_Chunk *entranceSound, *deathSound;
 	
 }entity;
 
@@ -90,6 +104,13 @@ typedef struct
 
 
 }soldiers;
+typedef struct
+{
+	int ID,side, cost, speed;
+	const char *entrance_filename;
+
+
+}unitData;
 
 //init functions
 char *loadJsonFile(const char *filename, int *success);
@@ -111,6 +132,14 @@ baseEntity **loadCorpses(SDL_Renderer *render, int *success, options *opt);
 entity **createMenuButtons(baseEntity **buttons, int *success, options *opt);
 baseEntity *loadMap(const char *filename, SDL_Renderer *render, int *success, options *opt);
 entity **createGameButtons(baseEntity **buttons, int *success, options *opt);
+entity *loadMachineGun(unitData *mGData, int side, baseEntity *mGTex, int *success, options *opt);
+soldiers *createArmy(unitData *mGData, int side, baseEntity *mGText, int *success, options *opt);
+unitData **loadUnitData( const char *file, int *success, options *opt);
+entity **loadUnits(unitData **data, baseEntity **textures, int *success, options *opt);
+void newSquad(soldiers *army, options *opt, entity *unitType, baseEntity **corpses, int *success, Mix_Chunk **deathsounds);
+Mix_Chunk **loadDeathSounds();
+void killAll(soldiers *army);
+
 
 //deinit functions
 void freeEntityArray(entity **array, int size);
@@ -123,6 +152,12 @@ void drawMenuButtons(entity **menuButtons, SDL_Renderer *render);
 void drawEntity(entity *toDraw, SDL_Renderer *render);
 void drawBaseEntity(baseEntity *toDraw, SDL_Renderer *render);
 void drawGameButtons(entity **gameButtons, SDL_Renderer *render, options *opt);
+void drawArmy(soldiers *toDraw, SDL_Renderer *render);
+void moveArmy(soldiers *toMove);
 
 //input Functions
 int checkButtonClicked(baseEntity *mouse, entity *startButton, SDL_Event *events);
+void handleMenuButtons(entity **menuButtons, baseEntity *mouse, SDL_Event *events, int *inBattle, int *success);
+void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses, soldiers *army, baseEntity *mouse, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds);
+void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds);
+int checkScoreSide(soldiers *sold, int positionX);
