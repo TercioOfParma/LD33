@@ -1,14 +1,14 @@
 [
 	{
-		"SCREEN_WIDTH" : 1280,
-		"SCREEN_HEIGHT" : 720,
+		"SCREEN_WIDTH" : 1920,
+		"SCREEN_HEIGHT" : 1080,
 		"QUIT_IMG" : "gfx/quit_button.png",
 		"START_IMG" : "gfx/start_button.png",
 		"TITLE_IMG" : "gfx/title.png",
 		"TITLE" : "Futility",
 		"SAMPLE_FREQUENCY" : 44000,
 		"SAMPLE_SIZE" : 4096,
-		"NO_CHANNELS" : 4,
+		"NO_CHANNELS" : 2,
 		"BG_COLOR_R" : 255,
 		"BG_COLOR_G" : 255,
 		"BG_COLOR_B" : 255,
@@ -16,7 +16,7 @@
 		"SCALE_FACTOR" : 0.5,
 		"FRAMES_PER_ANIM" : 10,
 		"NO_BUTTONS" : 8,
-		"NO_SPRITES" : 8,
+		"NO_SPRITES" : 10,
 		"NO_CORPSES" : 10,
 		"BUTTON_PATH" : "gfx/buttons/",
 		"SPRITE_PATH" : "gfx/sprites/",
@@ -24,9 +24,9 @@
 		"MAP_PATH" : "gfx/map.png",
 		"QUIT_OFFSET" : 100,
 		"BUTTON_TRANSPARENCY" : 240,
-		"NO_UNITS" : 8,
+		"NO_UNITS" : 10,
 		"NO_SOUNDS" : 15,
-		"SQUAD_SIZE" : 5,
+		"SQUAD_SIZE" : 10,
 		"HP_OF_SIDE" : 10
 	}
 ]

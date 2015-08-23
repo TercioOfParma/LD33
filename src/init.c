@@ -445,7 +445,9 @@ entity *loadMachineGun(unitData *mGData, int side, baseEntity *mGTex, int *succe
 	entity *temp = initEntity(mGData->ID, side, *mGTex, *mGTex, success, opt);
 	temp->cost = mGData->cost;
 	temp->isAnimated = SUCCESS;
-
+	temp->speed = mGData->speed;
+	temp->frame.x = INVALID_RECT;
+	temp->angle = 90;
 	return temp;
 }
 
@@ -533,21 +535,20 @@ soldiers *createArmy(unitData *mGData, int side, baseEntity *mGText, int *succes
 	
 	}
 	temp->no_men = 1;
-	temp->men = malloc(sizeof(entity) * temp->no_men);
+	temp->men = malloc(sizeof(entity) * (temp->no_men));
 	temp->men[0] = loadMachineGun(mGData, side, mGText, success, opt);
-	temp->men[0]->isAnimated = TRUE;
 	fprintf(stderr, "%s\n", mGData->entrance_filename);
 	temp->men[0]->entranceSound = loadEffect(mGData->entrance_filename,success);
 	if(side == BRITISH)
 	{
-		temp->men[0]->posAndHitbox.x = opt->SCREEN_WIDTH - opt->QUIT_OFFSET;
+		temp->men[0]->posAndHitbox.x = opt->SCREEN_WIDTH  - opt->QUIT_OFFSET;
 		temp->men[0]->posAndHitbox.y = opt->SCREEN_HEIGHT - opt->QUIT_OFFSET;
 	
 	}
-	else
+	else if(side == GERMAN)
 	{
 		temp->men[0]->posAndHitbox.x = opt->QUIT_OFFSET;
-		temp->men[0]->posAndHitbox.y = opt->QUIT_OFFSET;
+		temp->men[0]->posAndHitbox.y = opt->SCREEN_HEIGHT - opt->QUIT_OFFSET;
 	
 	}
 	return temp;
@@ -586,7 +587,7 @@ void newSquad(soldiers *army, options *opt, entity *unitType, baseEntity **corps
 		army->men[looper]->frame.x = 0;
 		army->men[looper]->frame.y = 0;
 		army->men[looper]->deathSound = deathsounds[deathSound];
-		
+		army->men[looper]->isAnimated = SUCCESS;
 		army->men[looper]->speed = unitType->speed;
 		army->men[looper]->side = unitType->side;
 		
@@ -647,6 +648,70 @@ void killAll(soldiers *army)
 	
 	}
 
+
+
+}
+
+void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_Chunk **sounds, int number, entity *mg, int op, int adj)
+{
+	
+	army->men = realloc(army->men, (number + army->no_men) * sizeof(entity *));
+	int looper, new_size, start, corpse, yCoord, deathSound, holdTime;
+	static int startTime, endTime;
+	startTime = SDL_GetTicks();
+	holdTime = startTime - endTime;
+	if(holdTime < ROF )
+	{
+	
+		return;
+	}
+	baseEntity temp;
+	temp.tex = unitType->liveAnimation;
+	temp.dimensions = unitType->posAndHitbox;
+	start = army->no_men; //end of the array
+	new_size = army->no_men + number;
+	for(looper = start; looper < new_size; looper++)
+	{
+
+		army->men[looper] = initEntity(unitType->type, unitType->side, temp, temp, success, opt);
+		army->men[looper]->posAndHitbox.y = mg->posAndHitbox.y;
+		army->men[looper]->posAndHitbox.x = mg->posAndHitbox.x;
+		army->men[looper]->entranceSound = unitType->entranceSound;
+		army->men[looper]->deathSound = unitType->entranceSound;
+		army->men[looper]->isAnimated = SUCCESS;
+		army->men[looper]->speed = unitType->speed;
+		army->men[looper]->side = unitType->side;
+		army->men[looper]->adj = adj;
+		army->men[looper]->op = op;
+		army->men[looper]->angle = 0;
+	
+		
+	}
+	fprintf(stderr, "%d \n", army->no_men);
+	Mix_PlayChannel(-1,army->men[looper -1]->entranceSound,0);
+	endTime = SDL_GetTicks();
+	army->no_men = new_size;
+
+}
+
+
+Mix_Chunk **loadExplosions(int *success)
+{
+	Mix_Chunk **temp = malloc(sizeof(Mix_Chunk *) * 3);
+	if(!temp)
+	{
+		fprintf(stderr, "malloc has failed : %s", strerror(errno));
+		*success = FAIL;
+		return NULL;
+	
+	}
+	//cba
+	temp[0] = loadEffect("audio/artillery.wav", success);
+	temp[1] = loadEffect("audio/lewis_gun.wav", success);
+	temp[2] = loadEffect("audio/maxim_gun.wav", success);
+
+	
+	return temp;
 
 
 }

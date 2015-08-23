@@ -38,14 +38,24 @@ void handleMenuButtons(entity **menuButtons, baseEntity *mouse, SDL_Event *event
 void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses, soldiers *army, baseEntity *mouse, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds)
 {
 
-	if(checkButtonClicked(mouse, gameButtons[ANZACSPR], events) == SUCCESS)
+	if(checkButtonClicked(mouse, gameButtons[ANZACBUY], events) == SUCCESS)
 	{
 		newSquad(army,opt,men[ANZACSPR], corpses,success, deathsounds);
 		
 	}
-	else if(checkButtonClicked(mouse, gameButtons[BEFSPR], events) == SUCCESS)
+	else if(checkButtonClicked(mouse, gameButtons[BEFBUY], events) == SUCCESS)
 	{
 		newSquad(army,opt,men[BEFSPR], corpses,success, deathsounds);
+	
+	}
+	else if(checkButtonClicked(mouse, gameButtons[AUDIO_ONBUT], events) == SUCCESS)
+	{
+		Mix_Volume(-1, MAX_VOL);
+	
+	}
+	else if(checkButtonClicked(mouse, gameButtons[AUDIO_OFFBUT], events) == SUCCESS)
+	{
+		Mix_Volume(-1, MIN_VOL);
 	
 	}
 
@@ -94,5 +104,9 @@ int checkScoreSide(soldiers *sold, int positionX)
 	return score;
 
 
+
 }
+
+
+
 

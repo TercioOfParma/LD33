@@ -5,6 +5,7 @@
 #include <jansson/jansson.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 
 const static int SUCCESS = 1;
@@ -18,6 +19,11 @@ const static char *SOLDIERS_FILE = "soldiers.json";
 const static int TRUE = 1;
 const static int FALSE = 0;
 const static int INVALID_RECT = 123456;
+const static double PI = 3.141592653;
+const static int MAX_VOL = 128;
+const static int MIN_VOL = 0;
+const static int PI_DEG = 180;
+const static int ROF = 10;
 typedef enum
 {
 	ANZACBUY,
@@ -41,8 +47,9 @@ typedef enum
 	START,
 	QUIT,
 	BUYFAST,//sturmtruppen / anzac
-	BUYCHEAP // BEF / Landwehr
-	
+	BUYCHEAP, // BEF / Landwehr
+	LEWIS_BULLET,
+	MAXIM_BULLET
 
 
 }unitType;
@@ -55,7 +62,9 @@ typedef enum
 	STURMTRUPPENSPR,
 	GASSPR,
 	BRITMGSPR,
-	GERMMGSPR
+	GERMMGSPR,
+	LEWIS_MG,
+	MAXIM_MG
 
 }spritePos;
 typedef enum
@@ -82,7 +91,7 @@ typedef struct
 }options;
 typedef struct
 {
-	int type, speed, side, cost;
+	int type, speed, side, cost, op, adj;
 	char isAnimated;
 	double angle;
 	SDL_Texture *liveAnimation, *deadAnimation;//these will simply point to base textures
@@ -137,9 +146,10 @@ soldiers *createArmy(unitData *mGData, int side, baseEntity *mGText, int *succes
 unitData **loadUnitData( const char *file, int *success, options *opt);
 entity **loadUnits(unitData **data, baseEntity **textures, int *success, options *opt);
 void newSquad(soldiers *army, options *opt, entity *unitType, baseEntity **corpses, int *success, Mix_Chunk **deathsounds);
-Mix_Chunk **loadDeathSounds();
+Mix_Chunk **loadDeathSounds(int *success);
 void killAll(soldiers *army);
-
+void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_Chunk **sounds, int number, entity *mg, int op, int adj);
+Mix_Chunk **loadExplosions(int *success);
 
 //deinit functions
 void freeEntityArray(entity **array, int size);
@@ -148,12 +158,13 @@ void freeSprites(baseEntity **sprites, options *opt);
 void freeCorpses(baseEntity **corpses, options *opt);
 
 //draw functions
-void drawMenuButtons(entity **menuButtons, SDL_Renderer *render);
-void drawEntity(entity *toDraw, SDL_Renderer *render);
+void drawMenuButtons(entity **menuButtons, SDL_Renderer *render, options *opt);
+void drawEntity(entity *toDraw, SDL_Renderer *render, options *opt);
 void drawBaseEntity(baseEntity *toDraw, SDL_Renderer *render);
 void drawGameButtons(entity **gameButtons, SDL_Renderer *render, options *opt);
-void drawArmy(soldiers *toDraw, SDL_Renderer *render);
+void drawArmy(soldiers *toDraw, SDL_Renderer *render, options *opt);
 void moveArmy(soldiers *toMove);
+double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, int *success, Mix_Chunk **sounds, soldiers *bullets, entity *bullet);
 
 //input Functions
 int checkButtonClicked(baseEntity *mouse, entity *startButton, SDL_Event *events);

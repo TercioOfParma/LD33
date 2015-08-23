@@ -45,15 +45,32 @@
 	{
 		"ID" : 6,
 		"cost" : -1,
-		"entrance_sound_path" : "audio/lewis_gun.wav",
+		"entrance_sound_path" : "NA",
 		"side" : 1,
 		"speed" : 0
 	},
 	{
 		"ID" : 7,
 		"cost" : -1,
-		"entrance_sound_path" : "audio/maxim_gun.wav",
+		"entrance_sound_path" : "NA",
 		"side" : 2,
 		"speed" : 0
+	},
+	{
+		"ID" : 8,
+		"cost" : 0,
+		"entrance_sound_path" : "audio/lewis_gun.wav",
+		"side" : 0,
+		"speed" : 20
+	
+	
+	},
+	{
+		"ID" : 9,
+		"cost" : 0,
+		"entrance_sound_path" : "audio/maxim_gun.wav",
+		"side" : 0,
+		"speed" : 20
 	}
+	
 ]

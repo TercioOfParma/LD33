@@ -13,12 +13,12 @@ int main(int argc, char *argv[])
 	SDL_Renderer *render;
 	SDL_Event eventHandler;
 	baseEntity *title, **buttons, **sprites, **dead, *map;
-	soldiers *germans, *british;
+	soldiers *germans, *british, *bullets;
 	unitData **allUnits;
 	baseEntity mouse;
 	entity *titleToDisp;
 	entity **titleElements, **unitElements, **units;
-	Mix_Chunk **deathSounds;
+	Mix_Chunk **deathSounds, **booms;
 	
 	isSuccess = SUCCESS;
 	inBattle = FAIL;
@@ -37,11 +37,13 @@ int main(int argc, char *argv[])
 	map = loadMap(mainOpt.map_path, render, &isSuccess, &mainOpt);  
 	unitElements = createGameButtons(buttons, &isSuccess, &mainOpt);
 	units = loadUnits(allUnits, sprites, &isSuccess, &mainOpt);
-	deathSounds = loadDeathSounds();
+	deathSounds = loadDeathSounds(&isSuccess);
+	booms = loadExplosions(&isSuccess);
 	mouse.dimensions.w = 1;
 	mouse.dimensions.h = 1;
 	british = createArmy(allUnits[BRITMGSPR],BRITISH,sprites[BRITMGSPR], &isSuccess, &mainOpt);
 	germans = createArmy(allUnits[GERMMGSPR],GERMAN,sprites[GERMMGSPR], &isSuccess, &mainOpt);
+	bullets = createArmy(allUnits[GERMMGSPR], NO_SIDE, sprites[GERMMGSPR], &isSuccess, &mainOpt);
 	germanHP = mainOpt.HP_PER_SIDE;
 	britishHP = mainOpt.HP_PER_SIDE;
 	while(isSuccess == SUCCESS)
@@ -80,17 +82,23 @@ int main(int argc, char *argv[])
 		if(inBattle != SUCCESS)
 		{
 			SDL_RenderCopy(render,titleToDisp->liveAnimation, NULL, &(titleToDisp->posAndHitbox));
-			drawMenuButtons(titleElements, render);
+			drawMenuButtons(titleElements, render, &mainOpt);
 
 		}
-		if(inBattle == SUCCESS)
+		
+		if(inBattle == SUCCESS)//double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, int *success, Mix_Chunk **sounds, soldiers *bullets, entity *bullet)
 		{
+			british->men[0]->angle = changeMachineGunAngle(british->men[0], germans, &mainOpt, &isSuccess,booms, bullets ,units[LEWIS_MG]);
+			germans->men[0]->angle = changeMachineGunAngle(germans->men[0], british, &mainOpt, &isSuccess, booms, bullets, units[MAXIM_MG]);
 			drawBaseEntity(map, render);
 			drawGameButtons(unitElements, render, &mainOpt);
-			drawArmy(british, render);
-			drawArmy(germans, render);
+			drawArmy(british, render, &mainOpt);
+			drawArmy(germans, render, &mainOpt);
+			drawArmy(bullets, render, &mainOpt);
 			moveArmy(british);
 			moveArmy(germans);
+			moveArmy(bullets);
+
 			germanHP += checkScoreSide(british,0);
 			britishHP += checkScoreSide(germans, mainOpt.SCREEN_WIDTH);
 			if(britishHP < 0 || germanHP < 0)
@@ -105,6 +113,7 @@ int main(int argc, char *argv[])
 	}
 	freeEntityArray(british->men, british->no_men);
 	freeEntityArray(germans->men, germans->no_men);
+	freeEntityArray(bullets->men, bullets->no_men);
 	freeEntityArray(titleElements, 2);
 	freeEntityArray(unitElements, 6);
 	freeButtons(buttons, &mainOpt);
