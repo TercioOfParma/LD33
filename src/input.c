@@ -32,10 +32,11 @@ void handleMenuButtons(entity **menuButtons, baseEntity *mouse, SDL_Event *event
 	{
 		*success = FAIL;
 	}
+	
 
 }
 
-void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses, soldiers *army, baseEntity *mouse, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds)
+void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses, soldiers *army, baseEntity *mouse, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas, Mix_Chunk **explosionSounds)
 {
 
 	if(checkButtonClicked(mouse, gameButtons[ANZACBUY], events) == SUCCESS)
@@ -47,6 +48,14 @@ void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses,
 	{
 		newSquad(army,opt,men[BEFSPR], corpses,success, deathsounds);
 	
+	}
+	else if(checkButtonClicked(mouse, gameButtons[ARTILLERYBUY], events) == SUCCESS && *success == SUCCESS)
+	{
+		newShells(bullets, opt, shell, success, explosionSounds, BRITISH);
+	}
+	else if(checkButtonClicked(mouse, gameButtons[GASBUY], events) == SUCCESS && *success == SUCCESS)
+	{
+		newShells(bullets, opt, gas, success, explosionSounds, BRITISH);
 	}
 	else if(checkButtonClicked(mouse, gameButtons[AUDIO_ONBUT], events) == SUCCESS)
 	{
@@ -61,7 +70,7 @@ void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses,
 
 
 }
-void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds)
+void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas, Mix_Chunk **explosionSounds)
 {
 	switch(events->key.keysym.sym)
 	{
@@ -71,12 +80,19 @@ void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Even
 		case SDLK_2:
 			newSquad(army,opt,men[STURMTRUPPENSPR], corpses,success, deathsounds);
 			break;
+		case SDLK_3:
+			newShells(bullets, opt, shell, success, explosionSounds, GERMAN);
+			break;
+		case SDLK_4:
+			newShells(bullets, opt, gas, success, explosionSounds, GERMAN);
+			break;
 		case SDLK_ESCAPE:
 			*success = FAIL;
 			break;
 		case SDLK_p:
 			killAll(army);
 			break;
+		
 	
 	}
 
@@ -85,17 +101,18 @@ void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Even
 
 
 }
-int checkScoreSide(soldiers *sold, int positionX)
+int checkScoreSide(soldiers *sold, int positionX,options *opt)
 {
 	int looper, score;
 	score = 0;
+	SDL_Rect hitBox = {positionX, 0, 1, opt->SCREEN_HEIGHT};
 	for(looper = 0; looper < sold->no_men ; looper++)
 	{
 		
-		if(sold->men[looper]->posAndHitbox.x == positionX && sold->men[looper]->isAnimated == SUCCESS)
+		if(SDL_HasIntersection(&(sold->men[looper]->posAndHitbox), &hitBox) == SDL_TRUE && sold->men[looper]->isAnimated == SUCCESS && sold->men[looper]->scored == FAIL)
 		{
-			fprintf(stderr, "lolesk\n");
 			score += -1;
+			sold->men[looper]->scored = SUCCESS;
 		
 		}
 	
@@ -109,21 +126,26 @@ int checkScoreSide(soldiers *sold, int positionX)
 
 }
 
-void checkCollision(soldiers *bullets, soldiers *meatbags, Mix_Chunk **deaths)
+void checkCollision(soldiers *bullets, soldiers *meatbags, Mix_Chunk **deaths, int *deadNo)
 {
-	int looperBullet, looperMeatbags, randomDeath;
+	int looperBullet, looperMeatbags, randomDeath ,noDead;
+	noDead = 0;
 	for(looperBullet = 0; looperBullet < bullets->no_men; looperBullet++)
 	{
 		for(looperMeatbags = 0; looperMeatbags < meatbags->no_men; looperMeatbags++)
 		{
-			if(SDL_HasIntersection(&(bullets->men[looperBullet]->posAndHitbox),&(meatbags->men[looperMeatbags]->posAndHitbox)) == SDL_TRUE && bullets->men[looperBullet]->isAnimated == SUCCESS &&  meatbags->men[looperMeatbags]->isAnimated == SUCCESS)
+			if(SDL_HasIntersection(&(bullets->men[looperBullet]->posAndHitbox),&(meatbags->men[looperMeatbags]->posAndHitbox)) == SDL_TRUE && bullets->men[looperBullet]->isAnimated == SUCCESS &&  meatbags->men[looperMeatbags]->isAnimated == SUCCESS && bullets->men[looperBullet]->frame.x != 128)
 			{
 				randomDeath = rand() % 6;
-				bullets->men[looperBullet]->isAnimated = FAIL;
+				if(bullets->men[looperBullet]->type != 5)
+				{
+					bullets->men[looperBullet]->isAnimated = FAIL;
+				}
 				meatbags->men[looperMeatbags]->isAnimated = FAIL;
 				Mix_PlayChannel(-1,deaths[randomDeath], 0);
 				meatbags->men[looperMeatbags]->frame.x = 0;
 				meatbags->men[looperMeatbags]->frame.y = 0;
+				noDead++;
 			}
 		
 		
@@ -131,8 +153,7 @@ void checkCollision(soldiers *bullets, soldiers *meatbags, Mix_Chunk **deaths)
 	
 	
 	}
-
-
+	*deadNo = *deadNo + noDead;
 
 }
 

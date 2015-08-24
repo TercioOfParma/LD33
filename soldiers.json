@@ -40,7 +40,7 @@
 		"cost" : 200,
 		"entrance_sound_path" : "NA",
 		"side" : 0,
-		"speed" : 0
+		"speed" : 5
 	},
 	{
 		"ID" : 6,

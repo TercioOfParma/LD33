@@ -106,7 +106,9 @@ options initOptions(const char *jsonFile, int *success)
 	tempOpt.FRAMES_PER_ANIM = json_integer_value(json_object_get(optionsData,"FRAMES_PER_ANIM"));
 	tempOpt.ACCURACY_DEVIATION = json_integer_value(json_object_get(optionsData,"ACCURACY_DEVIATION"));
 	tempOpt.MG_RANGE = json_integer_value(json_object_get(optionsData,"MG_RANGE"));
+	tempOpt.ARTILLERY_BARRAGE = json_integer_value(json_object_get(optionsData,"ARTILLERY_BARRAGE"));
 	tempOpt.SCALE_FACTOR = json_number_value(json_object_get(optionsData,"SCALE_FACTOR"));
+	tempOpt.ARTILLERY_SCALE_FACTOR = json_number_value(json_object_get(optionsData,"ARTILLERY_SCALE_FACTOR"));
 	
 
 	
@@ -604,6 +606,7 @@ void newSquad(soldiers *army, options *opt, entity *unitType, baseEntity **corps
 		army->men[looper]->speed = unitType->speed;
 		army->men[looper]->side = unitType->side;
 		army->men[looper]->anim = 0;
+		army->men[looper]->scored = FAIL;
 		
 	
 		
@@ -666,7 +669,7 @@ void killAll(soldiers *army)
 
 }
 
-void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_Chunk **sounds, int number, entity *mg, int op, int adj)
+void newBullets(soldiers *army, options *opt, entity *unitType,int *success, Mix_Chunk **sounds, int number, entity *mg, int op, int adj)
 {
 	
 	army->men = realloc(army->men, (number + army->no_men) * sizeof(entity *));
@@ -699,7 +702,7 @@ void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_
 		army->men[looper]->adj = adj;
 		army->men[looper]->op = op;
 		army->men[looper]->angle = 0;
-		
+			
 	
 		
 	}
@@ -709,7 +712,50 @@ void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_
 	army->no_men = new_size;
 
 }
+void newShells(soldiers *army, options *opt, entity *unitType,int *success, Mix_Chunk **sound, int partOfScreen)
+{
+	army->men = realloc(army->men, (opt->ARTILLERY_BARRAGE + army->no_men) * sizeof(entity *));
+	int looper, new_size, start, yCoord, xCoord;
+	baseEntity temp;
+	temp.tex = unitType->liveAnimation;
+	temp.dimensions = unitType->posAndHitbox;
+	start = army->no_men; //end of the array
+	new_size = army->no_men + opt->ARTILLERY_BARRAGE;
+	for(looper = start; looper < new_size; looper++)
+	{	if(partOfScreen == BRITISH)
+		{
+			xCoord = rand() % opt->SCREEN_WIDTH / 2;
+			yCoord = rand() % opt->SCREEN_HEIGHT;
+		}
+		if(partOfScreen == GERMAN)
+		{
+			xCoord = rand() % opt->SCREEN_WIDTH / 2 + (opt->SCREEN_WIDTH / 2);
+			yCoord = rand() % opt->SCREEN_HEIGHT;
+		}
+		army->men[looper] = initEntity(unitType->type, unitType->side, temp, temp, success, opt);
+		army->men[looper]->posAndHitbox.y = yCoord;
+		army->men[looper]->posAndHitbox.x = xCoord;
+		army->men[looper]->posAndHitbox.w *= (opt->ARTILLERY_SCALE_FACTOR / opt->SCALE_FACTOR);
+		army->men[looper]->posAndHitbox.h *= (opt->ARTILLERY_SCALE_FACTOR / opt->SCALE_FACTOR);
+		army->men[looper]->frame.x = 0;
+		army->men[looper]->frame.w = 64;
+		army->men[looper]->frame.h = 64;
+		army->men[looper]->entranceSound = unitType->entranceSound;
+		army->men[looper]->deathSound = unitType->entranceSound;
+		army->men[looper]->isAnimated = SUCCESS;
+		army->men[looper]->speed = unitType->speed;
+		army->men[looper]->side = unitType->side;
+		army->men[looper]->angle = 0;
+		
+	
+		
+	}
+	
+	Mix_PlayChannel(1,army->men[looper -1]->entranceSound,0);
 
+	army->no_men = new_size;
+
+}
 
 Mix_Chunk **loadExplosions(int *success)
 {
@@ -731,3 +777,17 @@ Mix_Chunk **loadExplosions(int *success)
 
 
 }
+
+TTF_Font *loadFont(const char *filename, int fontSize, SDL_Renderer *render)
+{
+	TTF_Font *temp = TTF_OpenFont(filename, fontSize);
+	if(!temp)
+	{
+		fprintf(stderr, "Font failed to initialise : %s", TTF_GetError());
+		return NULL;
+	
+	}
+	return temp;
+}
+
+

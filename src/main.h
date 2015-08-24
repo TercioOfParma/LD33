@@ -16,6 +16,7 @@ const static int START_BUT_MENU = 0;
 const static int QUIT_BUT_MENU = 1;
 const static char *NO_SOUND = "NA";
 const static char *SOLDIERS_FILE = "soldiers.json";
+const static char *FONT_PATH = "defaultFont.ttf";
 const static int TRUE = 1;
 const static int FALSE = 0;
 const static int INVALID_RECT = 123456;
@@ -23,6 +24,7 @@ const static double PI = 3.141592653;
 const static int MAX_VOL = 128;
 const static int MIN_VOL = 0;
 const static int PI_DEG = 180;
+const static SDL_Color DEFAULT_TEXT = {0,255,0,255};
 typedef enum
 {
 	ANZACBUY,
@@ -85,13 +87,13 @@ typedef enum
 typedef struct
 {
 	int SCREEN_WIDTH, SCREEN_HEIGHT, SAMPLE_FREQUENCY, NO_CHANNELS, SAMPLE_SIZE,R_COL, G_COL, B_COL, A_COL, NO_BUTTONS, NO_CORPSES, NO_SPRITES, QUIT_OFFSET, BUTTON_TRANSPARENCY, NO_UNITS, NO_SOUNDS, SQUAD_SIZE, HP_PER_SIDE;
-	int ROF, ACCURACY_DEVIATION, OTHER_OFFSET, MG_RANGE, FRAMES_PER_ANIM;
+	int ROF, ACCURACY_DEVIATION, OTHER_OFFSET, MG_RANGE, FRAMES_PER_ANIM, ARTILLERY_BARRAGE;
 	const char *title_img, *start_button, *quit_button, *title, *sprite_path, *corpses_path, *buttons_path, *map_path;
-	double SCALE_FACTOR;
+	double SCALE_FACTOR, ARTILLERY_SCALE_FACTOR;
 }options;
 typedef struct
 {
-	int type, speed, side, cost, op, adj, anim, shotTime, endTime, startTime;
+	int type, speed, side, cost, op, adj, anim, shotTime, endTime, startTime, scored;
 	char isAnimated;
 	double angle;
 	SDL_Texture *liveAnimation, *deadAnimation;//these will simply point to base textures
@@ -148,14 +150,18 @@ entity **loadUnits(unitData **data, baseEntity **textures, int *success, options
 void newSquad(soldiers *army, options *opt, entity *unitType, baseEntity **corpses, int *success, Mix_Chunk **deathsounds);
 Mix_Chunk **loadDeathSounds(int *success);
 void killAll(soldiers *army);
-void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_Chunk **sounds, int number, entity *mg, int op, int adj);
+void newBullets(soldiers *army, options *opt, entity *unitType,int *success, Mix_Chunk **sounds, int number, entity *mg, int op, int adj);
 Mix_Chunk **loadExplosions(int *success);
+void newShells(soldiers *army, options *opt, entity *unitType,int *success, Mix_Chunk **sound, int partOfScreen);
+TTF_Font *loadFont(const char *filename, int fontSize, SDL_Renderer *render);
+
 
 //deinit functions
 void freeEntityArray(entity **array, int size);
 void freeButtons(baseEntity **buttons, options *opt);
 void freeSprites(baseEntity **sprites, options *opt);
 void freeCorpses(baseEntity **corpses, options *opt);
+
 
 //draw functions
 void drawMenuButtons(entity **menuButtons, SDL_Renderer *render, options *opt);
@@ -165,11 +171,12 @@ void drawGameButtons(entity **gameButtons, SDL_Renderer *render, options *opt);
 void drawArmy(soldiers *toDraw, SDL_Renderer *render, options *opt);
 void moveArmy(soldiers *toMove);
 double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, int *success, Mix_Chunk **sounds, soldiers *bullets, entity *bullet);
-void checkCollision(soldiers *bullets, soldiers *meatbags, Mix_Chunk **deaths);
+void checkCollision(soldiers *bullets, soldiers *meatbags, Mix_Chunk **deaths, int *deadNo);
+SDL_Texture *renderScore(TTF_Font *font, SDL_Rect *size, SDL_Renderer *render, int score, SDL_Texture *scoreDisplay, const char *textStr);
 
 //input Functions
 int checkButtonClicked(baseEntity *mouse, entity *startButton, SDL_Event *events);
 void handleMenuButtons(entity **menuButtons, baseEntity *mouse, SDL_Event *events, int *inBattle, int *success);
-void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses, soldiers *army, baseEntity *mouse, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds);
-void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds);
-int checkScoreSide(soldiers *sold, int positionX);
+void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses, soldiers *army, baseEntity *mouse, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas, Mix_Chunk **explosionSounds);
+void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas,  Mix_Chunk **explosionSounds);
+int checkScoreSide(soldiers *sold, int positionX,options *opt);

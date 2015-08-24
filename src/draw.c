@@ -18,10 +18,17 @@ void drawEntity(entity *toDraw, SDL_Renderer *render, options *opt)
 				toDraw->frame.y = 0;
 			
 			}
+			else if(toDraw->frame.x == 64 && toDraw->type == 2)
+			{
+				toDraw->frame.x = 128;
+				toDraw->frame.y = 0;
+				toDraw->isAnimated = FAIL;
+			}
 			else
 			{
 				toDraw->frame.x = 0;
 				toDraw->frame.y = 0;
+			
 			
 			}
 			toDraw->anim = 0;
@@ -38,7 +45,12 @@ void drawEntity(entity *toDraw, SDL_Renderer *render, options *opt)
 			SDL_RenderCopyEx(render, toDraw->liveAnimation, NULL, &(toDraw->posAndHitbox), toDraw->angle, NULL, SDL_FLIP_NONE);
 	
 		}
-		else
+		else if(toDraw->type == 2)
+		{
+			SDL_RenderCopyEx(render, toDraw->deadAnimation, &(toDraw->frame), &(toDraw->posAndHitbox), toDraw->angle, NULL, SDL_FLIP_NONE);
+			
+		}
+		else 
 		{
 			SDL_RenderCopyEx(render, toDraw->deadAnimation, NULL, &(toDraw->posAndHitbox), toDraw->angle, NULL, SDL_FLIP_NONE);
 			
@@ -111,6 +123,12 @@ void moveArmy(soldiers *toMove)
 				toMove->men[looper]->posAndHitbox.x += toMove->men[looper]->adj;
 				toMove->men[looper]->posAndHitbox.y += toMove->men[looper]->op;
 			}
+			if(toMove->men[looper]->type == 5)
+			{
+				toMove->men[looper]->posAndHitbox.x += toMove->men[looper]->speed / 4 ;
+				toMove->men[looper]->posAndHitbox.y += toMove->men[looper]->speed /2;
+			}
+		
 		
 		}
 	
@@ -155,11 +173,46 @@ double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, i
 		
 		op = bullet->speed * sin((angle * PI) / PI_DEG);
 		adj = bullet->speed * cos((angle * PI) / PI_DEG);
-		newObject(bullets, opt, bullet,success, sounds, 1, MG, op, adj);
+		newBullets(bullets, opt, bullet,success, sounds, 1, MG, op, adj);
 	
 		
 	}
 	
 	
 	return angle;
+}
+
+SDL_Texture *renderScore(TTF_Font *font, SDL_Rect *size, SDL_Renderer *render, int score, SDL_Texture *scoreDisplay, const char *textStr)
+{
+	SDL_DestroyTexture(scoreDisplay);
+	SDL_Surface *temp;
+	SDL_Texture *tempTex;
+	char text[100];
+	sprintf(text,"%s : %d",textStr, score);//makes a decent string
+	temp = TTF_RenderText_Solid(font,text,DEFAULT_TEXT);//this creates a surface from the text
+	fprintf(stderr, "Text unable to be created : %s\n", TTF_GetError());
+	if(!temp)
+	{
+		fprintf(stderr, "Text unable to be created : %s\n", TTF_GetError());
+		return NULL;
+	
+	}
+	tempTex = SDL_CreateTextureFromSurface(render,temp);//makes a texture
+	
+	if(!tempTex)
+	{
+	
+		fprintf(stderr, "Texture failed to create : %s", SDL_GetError());
+		return NULL;
+	}
+	size->w = temp->w;
+	size->h = temp->h;
+	SDL_FreeSurface(temp);
+	
+	return tempTex;
+
+
+
+
+
 }
