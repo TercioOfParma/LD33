@@ -28,7 +28,7 @@
 		"NO_UNITS" : 10,
 		"NO_SOUNDS" : 15,
 		"SQUAD_SIZE" : 20,
-		"HP_OF_SIDE" : 100,
+		"HP_OF_SIDE" : 10,
 		"ROF" : 50,
 		"ACCURACY_DEVIATION" : 100,
 		"MG_RANGE" : 1000,
