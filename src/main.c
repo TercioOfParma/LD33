@@ -6,14 +6,14 @@
 int main(int argc, char *argv[])
 {
 	srand(time(NULL));
-	int isSuccess, inBattle, germanHP, britishHP, oldGermanHP,oldBritishHP, noDead, oldNoDead;
+	int isSuccess, inBattle, germanHP, britishHP, oldGermanHP,oldBritishHP, noDead, oldNoDead, germanPoints, britishPoints, oldGermanPoints, oldBritishPoints;
 	char *jsonContents, *soldierData;
 	options mainOpt;
 	SDL_Window *mainWin;
 	SDL_Renderer *render;
 	SDL_Event eventHandler;
-	SDL_Texture *germanHpDis, *britishHpDis, *deadDis;
-	SDL_Rect germanRect, britishRect, deadRect;
+	SDL_Texture *germanHpDis, *britishHpDis, *deadDis, *germanPointDis, *britishPointDis;
+	SDL_Rect germanRect, britishRect, deadRect, germanPRect, britishPRect;
 	
 	baseEntity *title, **buttons, **sprites, **dead, *map;
 	soldiers *germans, *british, *bullets;
@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 	
 	noDead = 0;
 	oldNoDead = 0;
+	;
 	isSuccess = SUCCESS;
 	inBattle = FAIL;
 	jsonContents = loadJsonFile(OPTIONS_FILE,&isSuccess);
@@ -53,23 +54,36 @@ int main(int argc, char *argv[])
 	bullets = createArmy(allUnits[GERMMGSPR], NO_SIDE, sprites[GERMMGSPR], &isSuccess, &mainOpt);
 	germanHP = mainOpt.HP_PER_SIDE;
 	britishHP = mainOpt.HP_PER_SIDE;
-	germanRect.y = mainOpt.SCREEN_HEIGHT - mainOpt.OTHER_OFFSET; 
+	germanRect.y = mainOpt.SCREEN_HEIGHT - mainOpt.OTHER_OFFSET ; 
 	germanRect.x = 0;
+	germanPRect.x = 0;
+	germanPRect.y = mainOpt.SCREEN_HEIGHT - mainOpt.OTHER_OFFSET + 70 ; 
 	britishRect.y = mainOpt.SCREEN_HEIGHT - mainOpt.OTHER_OFFSET; 
-	britishRect.x = mainOpt.SCREEN_WIDTH - (mainOpt.OTHER_OFFSET *1.5);
+	britishRect.x = mainOpt.SCREEN_WIDTH - (mainOpt.OTHER_OFFSET *1.5) - 100;
+	britishPRect.x = mainOpt.SCREEN_WIDTH - (mainOpt.OTHER_OFFSET *1.5) - 70;
+	britishPRect.y = mainOpt.SCREEN_HEIGHT - mainOpt.OTHER_OFFSET + 70;
 	deadRect.x = (int)(mainOpt.SCREEN_WIDTH / 2);
 	deadRect.y = 0;
+	britishPoints = mainOpt.STARTING_POINTS;
+	germanPoints = britishPoints;
 	britishHpDis = renderScore(defaultFont, &britishRect, render , britishHP , britishHpDis, "British HP ");
 	germanHpDis =  renderScore(defaultFont, &germanRect, render , germanHP , germanHpDis, "German HP ");
+	germanPointDis =  renderScore(defaultFont, &germanPRect, render , germanPoints ,germanPointDis, "German Points ");
+	britishPointDis =  renderScore(defaultFont, &britishPRect, render , britishPoints , britishPointDis, "British Points ");
 	deadDis = renderScore(defaultFont, &deadRect, render , noDead , deadDis, "Dead men ");
-	while(isSuccess == SUCCESS)
+	while(isSuccess != FAIL)
 	{
 		SDL_GetMouseState(&(mouse.dimensions.x), &(mouse.dimensions.y));
 		oldBritishHP = britishHP;
+		oldBritishPoints = britishPoints;
 		oldGermanHP = germanHP;
+		oldGermanPoints = germanPoints;
 		oldNoDead = noDead;
 		while(SDL_PollEvent(&eventHandler) != 0)
 		{
+			
+			
+			
 			if(eventHandler.type == SDL_QUIT)
 			{
 				isSuccess = FAIL;
@@ -83,16 +97,17 @@ int main(int argc, char *argv[])
 			else if(eventHandler.type == SDL_MOUSEBUTTONDOWN && inBattle == SUCCESS)
 			{
 				
-				handleGameButtons(unitElements, units, dead,  british, &mouse, &eventHandler, &isSuccess, &mainOpt, deathSounds, bullets, units[ARTILLERYSPR] , units[GASSPR], booms);
+				handleGameButtons(unitElements, units, dead,  british, &mouse, &eventHandler, &isSuccess, &mainOpt, deathSounds, bullets, units[ARTILLERYSPR] , units[GASSPR], booms, &britishPoints);
 				fprintf(stderr, "%d\n", bullets->no_men);
 			
 			}
 			else if(eventHandler.type == SDL_KEYDOWN && inBattle == SUCCESS)
 			{
-				handleKeyboard(units, dead, germans, &eventHandler, &isSuccess, &mainOpt, deathSounds, bullets, units[ARTILLERYSPR], units[GASSPR], booms);
+				handleKeyboard(units, dead, germans, &eventHandler, &isSuccess, &mainOpt, deathSounds, bullets, units[ARTILLERYSPR], units[GASSPR], booms, &germanPoints);
 				
 			
 			}
+			
 		
 		}
 		SDL_RenderClear(render);
@@ -124,9 +139,11 @@ int main(int argc, char *argv[])
 			drawGameButtons(unitElements, render, &mainOpt);
 			germanHP += checkScoreSide(british,0, &mainOpt);
 			britishHP += checkScoreSide(germans, mainOpt.SCREEN_WIDTH, &mainOpt);
+			britishPoints++;
+			germanPoints++;
 			if(britishHP < 0 || germanHP < 0)
 			{
-				isSuccess = FAIL;
+				isSuccess = GAME_WON;
 			
 			}
 			if(noDead != oldNoDead)
@@ -138,9 +155,19 @@ int main(int argc, char *argv[])
 				germanHpDis = renderScore(defaultFont, &germanRect, render , germanHP , germanHpDis, "German HP");
 			
 			}
+			if(germanPoints != oldGermanPoints)
+			{
+				germanPointDis = renderScore(defaultFont, &germanPRect, render , germanPoints , germanPointDis, "German Points");
+			
+			}
 			if(britishHP != oldBritishHP)
 			{
 				britishHpDis = renderScore(defaultFont, &britishRect, render , britishHP , britishHpDis, "British HP");
+			
+			}
+			if(britishPoints != oldBritishPoints)
+			{
+				britishPointDis = renderScore(defaultFont, &britishRect, render , britishPoints , britishPointDis, "British Points");
 			
 			}
 		
@@ -148,11 +175,40 @@ int main(int argc, char *argv[])
 	
 			
 		}
+		if(isSuccess == GAME_WON)
+			{
+				while(isSuccess != FAIL)
+				{
+					if(germanHP > 0)
+					{
+						deadDis = renderScore(defaultFont, &deadRect, render , noDead , deadDis, "GERMANY WON ");
+						
+					}
+					else
+					{
+						deadDis = renderScore(defaultFont, &deadRect, render , noDead , deadDis, "BRITAIN WON ");
+					}
+							SDL_RenderClear(render);
+							SDL_RenderCopy(render, deadDis, NULL, &deadRect);
+							SDL_RenderPresent(render);
+							while(SDL_PollEvent(&eventHandler) != 0)
+							{
+								if(eventHandler.type == SDL_KEYDOWN)
+								{
+										isSuccess = FAIL;
+										goto end; //i am sorry dijkstra
+								}	
+							}	
+				}
+			}
 		SDL_RenderCopy(render, britishHpDis, NULL, &britishRect);
 		SDL_RenderCopy(render, germanHpDis, NULL, &germanRect);
 		SDL_RenderCopy(render, deadDis, NULL, &deadRect);
+		SDL_RenderCopy(render, britishPointDis, NULL, &britishPRect);
+		SDL_RenderCopy(render, germanPointDis, NULL, &germanPRect);
 		SDL_RenderPresent(render);
 	}
+	end://"let the OS deal with the others"
 	freeEntityArray(british->men, british->no_men);
 	freeEntityArray(germans->men, germans->no_men);
 	freeEntityArray(bullets->men, bullets->no_men);

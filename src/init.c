@@ -108,6 +108,7 @@ options initOptions(const char *jsonFile, int *success)
 	tempOpt.MG_RANGE = json_integer_value(json_object_get(optionsData,"MG_RANGE"));
 	tempOpt.ARTILLERY_BARRAGE = json_integer_value(json_object_get(optionsData,"ARTILLERY_BARRAGE"));
 	tempOpt.SCALE_FACTOR = json_number_value(json_object_get(optionsData,"SCALE_FACTOR"));
+	tempOpt.STARTING_POINTS = json_integer_value(json_object_get(optionsData,"STARTING_POINTS"));
 	tempOpt.ARTILLERY_SCALE_FACTOR = json_number_value(json_object_get(optionsData,"ARTILLERY_SCALE_FACTOR"));
 	
 
@@ -527,6 +528,7 @@ entity **loadUnits(unitData **data, baseEntity **textures, int *success, options
 		temp[looper] = initEntity(data[looper]->ID, data[looper]->side, *(textures[looper]), *(textures[looper]), success, opt);
 		temp[looper]->entranceSound = loadEffect(data[looper]->entrance_filename, success);
 		temp[looper]->speed = data[looper]->speed;
+		temp[looper]->cost = data[looper]->cost;
 	}
 	
 	return temp;
@@ -706,8 +708,14 @@ void newBullets(soldiers *army, options *opt, entity *unitType,int *success, Mix
 	
 		
 	}
-	
-	Mix_PlayChannel(1,army->men[looper -1]->entranceSound,0);
+	if(mg->side == BRITISH)
+	{
+		Mix_PlayChannel(1,sounds[1],0);
+	}
+	if(mg->side == GERMAN)
+	{
+		Mix_PlayChannel(1,sounds[2],0);
+	}
 	mg->endTime = SDL_GetTicks();
 	army->no_men = new_size;
 

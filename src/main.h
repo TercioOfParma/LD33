@@ -10,6 +10,7 @@
 
 const static int SUCCESS = 1;
 const static int FAIL = 2;
+const static int GAME_WON = 3;
 const static char *OPTIONS_FILE = "options.json";
 const static int MAX_LINE = 80;
 const static int START_BUT_MENU = 0;
@@ -87,7 +88,7 @@ typedef enum
 typedef struct
 {
 	int SCREEN_WIDTH, SCREEN_HEIGHT, SAMPLE_FREQUENCY, NO_CHANNELS, SAMPLE_SIZE,R_COL, G_COL, B_COL, A_COL, NO_BUTTONS, NO_CORPSES, NO_SPRITES, QUIT_OFFSET, BUTTON_TRANSPARENCY, NO_UNITS, NO_SOUNDS, SQUAD_SIZE, HP_PER_SIDE;
-	int ROF, ACCURACY_DEVIATION, OTHER_OFFSET, MG_RANGE, FRAMES_PER_ANIM, ARTILLERY_BARRAGE;
+	int ROF, ACCURACY_DEVIATION, OTHER_OFFSET, MG_RANGE, FRAMES_PER_ANIM, ARTILLERY_BARRAGE, STARTING_POINTS;
 	const char *title_img, *start_button, *quit_button, *title, *sprite_path, *corpses_path, *buttons_path, *map_path;
 	double SCALE_FACTOR, ARTILLERY_SCALE_FACTOR;
 }options;
@@ -177,6 +178,6 @@ SDL_Texture *renderScore(TTF_Font *font, SDL_Rect *size, SDL_Renderer *render, i
 //input Functions
 int checkButtonClicked(baseEntity *mouse, entity *startButton, SDL_Event *events);
 void handleMenuButtons(entity **menuButtons, baseEntity *mouse, SDL_Event *events, int *inBattle, int *success);
-void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses, soldiers *army, baseEntity *mouse, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas, Mix_Chunk **explosionSounds);
-void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas,  Mix_Chunk **explosionSounds);
+void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses, soldiers *army, baseEntity *mouse, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas, Mix_Chunk **explosionSounds, int *points);
+void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas,  Mix_Chunk **explosionSounds, int *points);
 int checkScoreSide(soldiers *sold, int positionX,options *opt);

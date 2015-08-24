@@ -184,13 +184,12 @@ double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, i
 
 SDL_Texture *renderScore(TTF_Font *font, SDL_Rect *size, SDL_Renderer *render, int score, SDL_Texture *scoreDisplay, const char *textStr)
 {
-	SDL_DestroyTexture(scoreDisplay);
+	//SDL_DestroyTexture(scoreDisplay);
 	SDL_Surface *temp;
 	SDL_Texture *tempTex;
 	char text[100];
 	sprintf(text,"%s : %d",textStr, score);//makes a decent string
 	temp = TTF_RenderText_Solid(font,text,DEFAULT_TEXT);//this creates a surface from the text
-	fprintf(stderr, "Text unable to be created : %s\n", TTF_GetError());
 	if(!temp)
 	{
 		fprintf(stderr, "Text unable to be created : %s\n", TTF_GetError());

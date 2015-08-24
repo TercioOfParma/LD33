@@ -36,26 +36,42 @@ void handleMenuButtons(entity **menuButtons, baseEntity *mouse, SDL_Event *event
 
 }
 
-void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses, soldiers *army, baseEntity *mouse, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas, Mix_Chunk **explosionSounds)
+void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses, soldiers *army, baseEntity *mouse, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas, Mix_Chunk **explosionSounds, int *points)
 {
-
+	
 	if(checkButtonClicked(mouse, gameButtons[ANZACBUY], events) == SUCCESS)
 	{
-		newSquad(army,opt,men[ANZACSPR], corpses,success, deathsounds);
+		if(*points > men[ANZACSPR]->cost)
+		{
+			newSquad(army,opt,men[ANZACSPR], corpses,success, deathsounds);
+			fprintf(stderr, "%d \n", men[ANZACSPR]->cost);
+			*points -= men[ANZACSPR]->cost;
+		}
 		
 	}
 	else if(checkButtonClicked(mouse, gameButtons[BEFBUY], events) == SUCCESS)
 	{
-		newSquad(army,opt,men[BEFSPR], corpses,success, deathsounds);
-	
+		if(*points > men[BEFSPR]->cost)
+		{
+			newSquad(army,opt,men[BEFSPR], corpses,success, deathsounds);
+			*points -= men[BEFSPR]->cost;
+		}
 	}
 	else if(checkButtonClicked(mouse, gameButtons[ARTILLERYBUY], events) == SUCCESS && *success == SUCCESS)
 	{
-		newShells(bullets, opt, shell, success, explosionSounds, BRITISH);
+		if(*points > shell->cost)
+		{
+			newShells(bullets, opt, shell, success, explosionSounds, BRITISH);
+			*points -= shell->cost;
+		}
 	}
 	else if(checkButtonClicked(mouse, gameButtons[GASBUY], events) == SUCCESS && *success == SUCCESS)
 	{
-		newShells(bullets, opt, gas, success, explosionSounds, BRITISH);
+		if(*points > gas->cost)
+		{
+			newShells(bullets, opt, gas, success, explosionSounds, BRITISH);
+			*points -= gas->cost;
+		}
 	}
 	else if(checkButtonClicked(mouse, gameButtons[AUDIO_ONBUT], events) == SUCCESS)
 	{
@@ -70,21 +86,37 @@ void handleGameButtons(entity **gameButtons, entity **men, baseEntity **corpses,
 
 
 }
-void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas, Mix_Chunk **explosionSounds)
+void handleKeyboard(entity **men, baseEntity **corpses, soldiers *army, SDL_Event *events, int *success, options *opt, Mix_Chunk **deathsounds, soldiers *bullets, entity *shell, entity *gas, Mix_Chunk **explosionSounds,int *points)
 {
 	switch(events->key.keysym.sym)
 	{
 		case SDLK_1:
+		if(*points > men[LANDWEHRSPR]->cost)
+		{
 			newSquad(army,opt,men[LANDWEHRSPR], corpses,success, deathsounds);
+			*points -= men[LANDWEHRSPR]->cost;
+		}
 			break;
 		case SDLK_2:
+		if(*points > men[STURMTRUPPENSPR]->cost)
+		{
 			newSquad(army,opt,men[STURMTRUPPENSPR], corpses,success, deathsounds);
+			*points -= men[STURMTRUPPENSPR]->cost;
+		}
 			break;
 		case SDLK_3:
+		if(*points > shell->cost)
+		{
 			newShells(bullets, opt, shell, success, explosionSounds, GERMAN);
+			*points -= shell->cost;
+		}
 			break;
 		case SDLK_4:
+		if(*points > men[LANDWEHRSPR]->cost)
+		{
 			newShells(bullets, opt, gas, success, explosionSounds, GERMAN);
+			*points -= gas->cost;
+		}
 			break;
 		case SDLK_ESCAPE:
 			*success = FAIL;

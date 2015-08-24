@@ -1,7 +1,7 @@
 [
 	{
-		"SCREEN_WIDTH" : 1280,
-		"SCREEN_HEIGHT" : 720,
+		"SCREEN_WIDTH" : 1920,
+		"SCREEN_HEIGHT" : 1080,
 		"QUIT_IMG" : "gfx/quit_button.png",
 		"START_IMG" : "gfx/start_button.png",
 		"TITLE_IMG" : "gfx/title.png",
@@ -28,11 +28,12 @@
 		"NO_UNITS" : 10,
 		"NO_SOUNDS" : 15,
 		"SQUAD_SIZE" : 20,
-		"HP_OF_SIDE" : 10,
-		"ROF" : 35,
+		"HP_OF_SIDE" : 100,
+		"ROF" : 50,
 		"ACCURACY_DEVIATION" : 100,
 		"MG_RANGE" : 1000,
 		"ARTILLERY_BARRAGE" : 20,
-		"ARTILLERY_SCALE_FACTOR" : 1.25
+		"ARTILLERY_SCALE_FACTOR" : 1.25,
+		"STARTING_POINTS" : 20
 	}
 ]
