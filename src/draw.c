@@ -124,8 +124,7 @@ void moveArmy(soldiers *toMove)
 double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, int *success, Mix_Chunk **sounds, soldiers *bullets, entity *bullet)
 {
 	int looper, diffX, diffY, smallX, smallY,op, adj,quadrant;
-	static int noBullets;
-	double angle;
+	double angle = MG->angle;
 	smallX = INVALID_RECT; //nice large number
 	smallY = INVALID_RECT; //nice large number
 	for(looper = 0; looper < opposingArmy->no_men; looper++)
@@ -142,20 +141,22 @@ double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, i
 			}
 		}
 	}
-	
+	if(smallX == INVALID_RECT || smallY == INVALID_RECT)
+	{
+		return angle;
+	}
 	smallX -= MG->posAndHitbox.x + (rand() % opt->ACCURACY_DEVIATION - (opt->ACCURACY_DEVIATION / 2));
 	smallY -= MG->posAndHitbox.y + (rand() % opt->ACCURACY_DEVIATION - (opt->ACCURACY_DEVIATION / 2));
 	angle = ((atan2(smallY, smallX)* PI_DEG) / PI);
 	quadrant = ((int)angle/PI_DEG * 2) % 4 + 1;
-	fprintf(stderr, "Angle : %f ,Quadrant : %d\n", angle, quadrant);
+	
 	if(abs(sqrt((smallX * smallX) + (smallY * smallY))) < opt->MG_RANGE )
 	{
 		
 		op = bullet->speed * sin((angle * PI) / PI_DEG);
 		adj = bullet->speed * cos((angle * PI) / PI_DEG);
-		fprintf(stderr, "Opposite : %d ,Adjacent : %d\n", op, adj);
 		newObject(bullets, opt, bullet,success, sounds, 1, MG, op, adj);
-		noBullets++;
+	
 		
 	}
 	

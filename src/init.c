@@ -562,6 +562,8 @@ soldiers *createArmy(unitData *mGData, int side, baseEntity *mGText, int *succes
 		temp->men[1]->posAndHitbox.y = opt->OTHER_OFFSET;
 	
 	}
+	temp->men[0]->endTime = 0;
+	temp->men[1]->endTime = 0;
 	return temp;
 }
 
@@ -669,12 +671,12 @@ void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_
 	
 	army->men = realloc(army->men, (number + army->no_men) * sizeof(entity *));
 	int looper, new_size, start, corpse, yCoord, deathSound, holdTime;
-	static int startTime, endTime;
-	startTime = SDL_GetTicks();
-	holdTime = startTime - endTime;
-	if(holdTime < opt->ROF )
-	{
+	mg->startTime = SDL_GetTicks();
+	mg->shotTime = mg->startTime - mg->endTime;
 	
+	if(mg->shotTime < opt->ROF )
+	{
+		
 		return;
 	}
 	baseEntity temp;
@@ -701,9 +703,9 @@ void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_
 	
 		
 	}
-	fprintf(stderr, "%d \n", army->no_men);
+	
 	Mix_PlayChannel(1,army->men[looper -1]->entranceSound,0);
-	endTime = SDL_GetTicks();
+	mg->endTime = SDL_GetTicks();
 	army->no_men = new_size;
 
 }

@@ -91,7 +91,7 @@ typedef struct
 }options;
 typedef struct
 {
-	int type, speed, side, cost, op, adj, anim;
+	int type, speed, side, cost, op, adj, anim, shotTime, endTime, startTime;
 	char isAnimated;
 	double angle;
 	SDL_Texture *liveAnimation, *deadAnimation;//these will simply point to base textures

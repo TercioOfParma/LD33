@@ -91,8 +91,10 @@ int checkScoreSide(soldiers *sold, int positionX)
 	score = 0;
 	for(looper = 0; looper < sold->no_men ; looper++)
 	{
-		if(sold->men[looper]->posAndHitbox.x == positionX && sold->men[looper]->isAnimated)
+		
+		if(sold->men[looper]->posAndHitbox.x == positionX && sold->men[looper]->isAnimated == SUCCESS)
 		{
+			fprintf(stderr, "lolesk\n");
 			score += -1;
 		
 		}
