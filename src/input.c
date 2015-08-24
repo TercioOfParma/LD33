@@ -107,6 +107,31 @@ int checkScoreSide(soldiers *sold, int positionX)
 
 }
 
+void checkCollision(soldiers *bullets, soldiers *meatbags, Mix_Chunk **deaths)
+{
+	int looperBullet, looperMeatbags, randomDeath;
+	for(looperBullet = 0; looperBullet < bullets->no_men; looperBullet++)
+	{
+		for(looperMeatbags = 0; looperMeatbags < meatbags->no_men; looperMeatbags++)
+		{
+			if(SDL_HasIntersection(&(bullets->men[looperBullet]->posAndHitbox),&(meatbags->men[looperMeatbags]->posAndHitbox)) == SDL_TRUE && bullets->men[looperBullet]->isAnimated == SUCCESS &&  meatbags->men[looperMeatbags]->isAnimated == SUCCESS)
+			{
+				randomDeath = rand() % 6;
+				bullets->men[looperBullet]->isAnimated = FAIL;
+				meatbags->men[looperMeatbags]->isAnimated = FAIL;
+				Mix_PlayChannel(-1,deaths[randomDeath], 0);
+				meatbags->men[looperMeatbags]->frame.x = 0;
+				meatbags->men[looperMeatbags]->frame.y = 0;
+			}
+		
+		
+		}
+	
+	
+	}
 
+
+
+}
 
 

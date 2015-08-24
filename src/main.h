@@ -23,7 +23,6 @@ const static double PI = 3.141592653;
 const static int MAX_VOL = 128;
 const static int MIN_VOL = 0;
 const static int PI_DEG = 180;
-const static int ROF = 10;
 typedef enum
 {
 	ANZACBUY,
@@ -86,12 +85,13 @@ typedef enum
 typedef struct
 {
 	int SCREEN_WIDTH, SCREEN_HEIGHT, SAMPLE_FREQUENCY, NO_CHANNELS, SAMPLE_SIZE,R_COL, G_COL, B_COL, A_COL, NO_BUTTONS, NO_CORPSES, NO_SPRITES, QUIT_OFFSET, BUTTON_TRANSPARENCY, NO_UNITS, NO_SOUNDS, SQUAD_SIZE, HP_PER_SIDE;
+	int ROF, ACCURACY_DEVIATION, OTHER_OFFSET, MG_RANGE, FRAMES_PER_ANIM;
 	const char *title_img, *start_button, *quit_button, *title, *sprite_path, *corpses_path, *buttons_path, *map_path;
 	double SCALE_FACTOR;
 }options;
 typedef struct
 {
-	int type, speed, side, cost, op, adj;
+	int type, speed, side, cost, op, adj, anim;
 	char isAnimated;
 	double angle;
 	SDL_Texture *liveAnimation, *deadAnimation;//these will simply point to base textures
@@ -165,6 +165,7 @@ void drawGameButtons(entity **gameButtons, SDL_Renderer *render, options *opt);
 void drawArmy(soldiers *toDraw, SDL_Renderer *render, options *opt);
 void moveArmy(soldiers *toMove);
 double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, int *success, Mix_Chunk **sounds, soldiers *bullets, entity *bullet);
+void checkCollision(soldiers *bullets, soldiers *meatbags, Mix_Chunk **deaths);
 
 //input Functions
 int checkButtonClicked(baseEntity *mouse, entity *startButton, SDL_Event *events);

@@ -1,7 +1,7 @@
 [
 	{
-		"SCREEN_WIDTH" : 1920,
-		"SCREEN_HEIGHT" : 1080,
+		"SCREEN_WIDTH" : 1280,
+		"SCREEN_HEIGHT" : 720,
 		"QUIT_IMG" : "gfx/quit_button.png",
 		"START_IMG" : "gfx/start_button.png",
 		"TITLE_IMG" : "gfx/title.png",
@@ -22,11 +22,15 @@
 		"SPRITE_PATH" : "gfx/sprites/",
 		"CORPSE_PATH" : "gfx/corpses/",
 		"MAP_PATH" : "gfx/map.png",
-		"QUIT_OFFSET" : 100,
+		"QUIT_OFFSET" : 200,
+		"OTHER_OFFSET" : 100,
 		"BUTTON_TRANSPARENCY" : 240,
 		"NO_UNITS" : 10,
 		"NO_SOUNDS" : 15,
 		"SQUAD_SIZE" : 10,
-		"HP_OF_SIDE" : 10
+		"HP_OF_SIDE" : 10,
+		"ROF" : 50,
+		"ACCURACY_DEVIATION" : 90,
+		"MG_RANGE" : 1000
 	}
 ]

@@ -7,18 +7,30 @@
 
 void drawEntity(entity *toDraw, SDL_Renderer *render, options *opt)
 {
-	static int noBullets;
+	
 	if(toDraw->posAndHitbox.x >= 0 && toDraw->posAndHitbox.x < opt->SCREEN_WIDTH && toDraw->posAndHitbox.y >= 0 && toDraw->posAndHitbox.y < opt->SCREEN_HEIGHT)
 	{
+		if(toDraw->anim == opt->FRAMES_PER_ANIM && toDraw->isAnimated == SUCCESS)
+		{
+			if(toDraw->frame.x == 0)
+			{
+				toDraw->frame.x = 64;
+				toDraw->frame.y = 0;
+			
+			}
+			else
+			{
+				toDraw->frame.x = 0;
+				toDraw->frame.y = 0;
+			
+			}
+			toDraw->anim = 0;
+		}
 		if(toDraw->isAnimated == SUCCESS && toDraw->frame.x != INVALID_RECT)
 		{
 		
 			SDL_RenderCopyEx(render, toDraw->liveAnimation, &(toDraw->frame), &(toDraw->posAndHitbox), toDraw->angle, NULL, SDL_FLIP_NONE);
-		}
-		else if(toDraw->frame.x != INVALID_RECT)
-		{
-			SDL_RenderCopyEx(render, toDraw->deadAnimation, &(toDraw->frame), &(toDraw->posAndHitbox), toDraw->angle, NULL, SDL_FLIP_NONE);
-	
+			toDraw->anim++;
 		}
 		else if(toDraw->isAnimated == SUCCESS)
 		{
@@ -31,7 +43,8 @@ void drawEntity(entity *toDraw, SDL_Renderer *render, options *opt)
 			SDL_RenderCopyEx(render, toDraw->deadAnimation, NULL, &(toDraw->posAndHitbox), toDraw->angle, NULL, SDL_FLIP_NONE);
 			
 		}
-
+		
+		
 	}
 
 }
@@ -110,7 +123,7 @@ void moveArmy(soldiers *toMove)
 
 double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, int *success, Mix_Chunk **sounds, soldiers *bullets, entity *bullet)
 {
-	int looper, diffX, diffY, smallX, smallY;
+	int looper, diffX, diffY, smallX, smallY,op, adj,quadrant;
 	static int noBullets;
 	double angle;
 	smallX = INVALID_RECT; //nice large number
@@ -119,31 +132,33 @@ double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, i
 	{
 		if(opposingArmy->men[looper]->isAnimated == SUCCESS &&  opposingArmy->men[looper]->posAndHitbox.x > 0 &&  opposingArmy->men[looper]->posAndHitbox.x < opt->SCREEN_WIDTH && opposingArmy->men[looper]->posAndHitbox.y > 0 &&  opposingArmy->men[looper]->posAndHitbox.y < opt->SCREEN_HEIGHT)
 		{
-			diffX = opposingArmy->men[looper]->posAndHitbox.x - MG->posAndHitbox.x;
-			diffY = opposingArmy->men[looper]->posAndHitbox.y - MG->posAndHitbox.y;
-		}
-		if(smallX > diffX)
-		{
-			smallX = diffX;
-		
-		}
-		if(smallY > diffY)
-		{
-			smallY = diffY;
-		
+			diffX = opposingArmy->men[looper]->posAndHitbox.x;
+			diffY = opposingArmy->men[looper]->posAndHitbox.y;
+			if(sqrt((diffX * diffX) + (diffY * diffY)) < sqrt((smallX * smallX) + (smallY * smallY)))
+			{
+				smallX = diffX;
+				smallY = diffY;
+			
+			}
 		}
 	}
-	angle = atan2(smallY, smallX);
 	
-	if(sqrt(abs(smallX * smallX) + (smallY * smallY)) < 15000 )
+	smallX -= MG->posAndHitbox.x + (rand() % opt->ACCURACY_DEVIATION - (opt->ACCURACY_DEVIATION / 2));
+	smallY -= MG->posAndHitbox.y + (rand() % opt->ACCURACY_DEVIATION - (opt->ACCURACY_DEVIATION / 2));
+	angle = ((atan2(smallY, smallX)* PI_DEG) / PI);
+	quadrant = ((int)angle/PI_DEG * 2) % 4 + 1;
+	fprintf(stderr, "Angle : %f ,Quadrant : %d\n", angle, quadrant);
+	if(abs(sqrt((smallX * smallX) + (smallY * smallY))) < opt->MG_RANGE )
 	{
-		smallY = bullet->speed * sin(angle);
-		smallX = bullet->speed * cos(angle);
-		newObject(bullets, opt, bullet,success, sounds, 1, MG, smallY, smallX);
+		
+		op = bullet->speed * sin((angle * PI) / PI_DEG);
+		adj = bullet->speed * cos((angle * PI) / PI_DEG);
+		fprintf(stderr, "Opposite : %d ,Adjacent : %d\n", op, adj);
+		newObject(bullets, opt, bullet,success, sounds, 1, MG, op, adj);
 		noBullets++;
 		
 	}
 	
-	angle = ((angle * PI_DEG) / PI) + (PI_DEG/2) ;
+	
 	return angle;
 }

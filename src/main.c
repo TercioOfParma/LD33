@@ -86,19 +86,22 @@ int main(int argc, char *argv[])
 
 		}
 		
-		if(inBattle == SUCCESS)//double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, int *success, Mix_Chunk **sounds, soldiers *bullets, entity *bullet)
+		if(inBattle == SUCCESS)
 		{
 			british->men[0]->angle = changeMachineGunAngle(british->men[0], germans, &mainOpt, &isSuccess,booms, bullets ,units[LEWIS_MG]);
+			british->men[1]->angle = changeMachineGunAngle(british->men[1], germans, &mainOpt, &isSuccess,booms, bullets ,units[LEWIS_MG]);
 			germans->men[0]->angle = changeMachineGunAngle(germans->men[0], british, &mainOpt, &isSuccess, booms, bullets, units[MAXIM_MG]);
+			germans->men[1]->angle = changeMachineGunAngle(germans->men[1], british, &mainOpt, &isSuccess, booms, bullets, units[MAXIM_MG]);
+			moveArmy(british);
+			moveArmy(germans);
+			moveArmy(bullets);
+			checkCollision(germans, bullets, deathSounds);
+			checkCollision(british, bullets, deathSounds);
 			drawBaseEntity(map, render);
 			drawGameButtons(unitElements, render, &mainOpt);
 			drawArmy(british, render, &mainOpt);
 			drawArmy(germans, render, &mainOpt);
 			drawArmy(bullets, render, &mainOpt);
-			moveArmy(british);
-			moveArmy(germans);
-			moveArmy(bullets);
-
 			germanHP += checkScoreSide(british,0);
 			britishHP += checkScoreSide(germans, mainOpt.SCREEN_WIDTH);
 			if(britishHP < 0 || germanHP < 0)

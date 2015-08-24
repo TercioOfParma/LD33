@@ -4,14 +4,14 @@
 		"cost" : 100,
 		"entrance_sound_path" : "audio/britain_join_2.wav",
 		"side" : 1,
-		"speed" : 4
+		"speed" : 3
 	},
 	{
 		"ID" : 1,
 		"cost" : 50,
 		"entrance_sound_path" : "audio/britain_join_1.wav",
 		"side" : 1,
-		"speed" : 2
+		"speed" : 1
 	},
 	{
 		"ID" : 2,
@@ -25,14 +25,14 @@
 		"cost" : 50,
 		"entrance_sound_path" : "audio/german_join_2.wav",
 		"side" : 2,
-		"speed" : 2
+		"speed" : 1
 	},
 	{
 		"ID" : 4,
 		"cost" : 100,
 		"entrance_sound_path" : "audio/german_join_1.wav",
 		"side" : 2,
-		"speed" : 4
+		"speed" : 3
 	},
 
 	{

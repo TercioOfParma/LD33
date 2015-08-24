@@ -97,10 +97,15 @@ options initOptions(const char *jsonFile, int *success)
 	tempOpt.NO_SPRITES= json_integer_value(json_object_get(optionsData,"NO_SPRITES"));
 	tempOpt.NO_SOUNDS= json_integer_value(json_object_get(optionsData,"NO_SOUNDS"));
 	tempOpt.QUIT_OFFSET= json_integer_value(json_object_get(optionsData,"QUIT_OFFSET"));
+	tempOpt.OTHER_OFFSET= json_integer_value(json_object_get(optionsData,"OTHER_OFFSET"));
 	tempOpt.BUTTON_TRANSPARENCY= json_integer_value(json_object_get(optionsData,"BUTTON_TRANSPARENCY"));
 	tempOpt.NO_UNITS = json_integer_value(json_object_get(optionsData,"NO_UNITS"));
 	tempOpt.SQUAD_SIZE = json_integer_value(json_object_get(optionsData,"SQUAD_SIZE"));
 	tempOpt.HP_PER_SIDE = json_integer_value(json_object_get(optionsData,"HP_OF_SIDE"));
+	tempOpt.ROF = json_integer_value(json_object_get(optionsData,"ROF"));
+	tempOpt.FRAMES_PER_ANIM = json_integer_value(json_object_get(optionsData,"FRAMES_PER_ANIM"));
+	tempOpt.ACCURACY_DEVIATION = json_integer_value(json_object_get(optionsData,"ACCURACY_DEVIATION"));
+	tempOpt.MG_RANGE = json_integer_value(json_object_get(optionsData,"MG_RANGE"));
 	tempOpt.SCALE_FACTOR = json_number_value(json_object_get(optionsData,"SCALE_FACTOR"));
 	
 
@@ -431,7 +436,7 @@ entity **createGameButtons(baseEntity **buttons, int *success, options *opt)
 		temp[looper] = initEntity(looper, NO_SIDE, *(buttons[looper]), *(buttons[looper]), success, opt);
 		temp[looper]->posAndHitbox.x = 0;
 		temp[looper]->posAndHitbox.y = yOffset;
-		yOffset += opt->QUIT_OFFSET;
+		yOffset += opt->OTHER_OFFSET;
 		SDL_SetTextureAlphaMod(temp[looper]->liveAnimation, opt->BUTTON_TRANSPARENCY);
 		temp[looper]->frame.x = INVALID_RECT;
 	}
@@ -534,21 +539,27 @@ soldiers *createArmy(unitData *mGData, int side, baseEntity *mGText, int *succes
 		return NULL;
 	
 	}
-	temp->no_men = 1;
+	temp->no_men = 2;
 	temp->men = malloc(sizeof(entity) * (temp->no_men));
 	temp->men[0] = loadMachineGun(mGData, side, mGText, success, opt);
+	temp->men[1] = loadMachineGun(mGData, side, mGText, success, opt);
 	fprintf(stderr, "%s\n", mGData->entrance_filename);
 	temp->men[0]->entranceSound = loadEffect(mGData->entrance_filename,success);
+	temp->men[1]->entranceSound = loadEffect(mGData->entrance_filename,success);
 	if(side == BRITISH)
 	{
-		temp->men[0]->posAndHitbox.x = opt->SCREEN_WIDTH  - opt->QUIT_OFFSET;
-		temp->men[0]->posAndHitbox.y = opt->SCREEN_HEIGHT - opt->QUIT_OFFSET;
+		temp->men[0]->posAndHitbox.x = opt->SCREEN_WIDTH  - opt->OTHER_OFFSET;
+		temp->men[1]->posAndHitbox.x = opt->SCREEN_WIDTH  - opt->OTHER_OFFSET;
+		temp->men[0]->posAndHitbox.y = opt->SCREEN_HEIGHT - opt->OTHER_OFFSET;
+		temp->men[1]->posAndHitbox.y = opt->OTHER_OFFSET;
 	
 	}
 	else if(side == GERMAN)
 	{
-		temp->men[0]->posAndHitbox.x = opt->QUIT_OFFSET;
-		temp->men[0]->posAndHitbox.y = opt->SCREEN_HEIGHT - opt->QUIT_OFFSET;
+		temp->men[0]->posAndHitbox.x = opt->OTHER_OFFSET;
+		temp->men[1]->posAndHitbox.x = opt->OTHER_OFFSET;
+		temp->men[0]->posAndHitbox.y = opt->SCREEN_HEIGHT - opt->OTHER_OFFSET;
+		temp->men[1]->posAndHitbox.y = opt->OTHER_OFFSET;
 	
 	}
 	return temp;
@@ -573,12 +584,12 @@ void newSquad(soldiers *army, options *opt, entity *unitType, baseEntity **corps
 		if(unitType->side == GERMAN)
 		{
 			army->men[looper]->angle = 90;
-			army->men[looper]->posAndHitbox.x = opt->QUIT_OFFSET;
+			army->men[looper]->posAndHitbox.x = opt->OTHER_OFFSET;
 		}
 		else
 		{
 			army->men[looper]->angle = 270;
-			army->men[looper]->posAndHitbox.x = opt->SCREEN_WIDTH - opt->QUIT_OFFSET;
+			army->men[looper]->posAndHitbox.x = opt->SCREEN_WIDTH - opt->OTHER_OFFSET;
 		}
 		army->men[looper]->posAndHitbox.y = yCoord;
 		army->men[looper]->entranceSound = unitType->entranceSound;
@@ -590,6 +601,7 @@ void newSquad(soldiers *army, options *opt, entity *unitType, baseEntity **corps
 		army->men[looper]->isAnimated = SUCCESS;
 		army->men[looper]->speed = unitType->speed;
 		army->men[looper]->side = unitType->side;
+		army->men[looper]->anim = 0;
 		
 	
 		
@@ -660,7 +672,7 @@ void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_
 	static int startTime, endTime;
 	startTime = SDL_GetTicks();
 	holdTime = startTime - endTime;
-	if(holdTime < ROF )
+	if(holdTime < opt->ROF )
 	{
 	
 		return;
@@ -676,6 +688,7 @@ void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_
 		army->men[looper] = initEntity(unitType->type, unitType->side, temp, temp, success, opt);
 		army->men[looper]->posAndHitbox.y = mg->posAndHitbox.y;
 		army->men[looper]->posAndHitbox.x = mg->posAndHitbox.x;
+		army->men[looper]->frame.x = INVALID_RECT;
 		army->men[looper]->entranceSound = unitType->entranceSound;
 		army->men[looper]->deathSound = unitType->entranceSound;
 		army->men[looper]->isAnimated = SUCCESS;
@@ -684,11 +697,12 @@ void newObject(soldiers *army, options *opt, entity *unitType,int *success, Mix_
 		army->men[looper]->adj = adj;
 		army->men[looper]->op = op;
 		army->men[looper]->angle = 0;
+		
 	
 		
 	}
 	fprintf(stderr, "%d \n", army->no_men);
-	Mix_PlayChannel(-1,army->men[looper -1]->entranceSound,0);
+	Mix_PlayChannel(1,army->men[looper -1]->entranceSound,0);
 	endTime = SDL_GetTicks();
 	army->no_men = new_size;
 
