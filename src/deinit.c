@@ -46,7 +46,7 @@ void freeCorpses(baseEntity **corpses, options *opt)
 }
 void freeEntityArray(entity **array, int size)
 {
-		int looper;
+	int looper;
 
 	for(looper = 0; looper < size; looper++)
 	{
@@ -55,6 +55,18 @@ void freeEntityArray(entity **array, int size)
 	}
 	free(*array);
 	free(array);
+
+
+}
+void freeChunks(Mix_Chunk **chunkArray, int size)
+{
+	int looper;
+	
+	for(looper = 0; looper < size; looper++)
+	{
+		Mix_FreeChunk(chunkArray[looper]);
+	
+	}
 
 
 }

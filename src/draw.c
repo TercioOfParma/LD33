@@ -10,6 +10,11 @@ void drawEntity(entity *toDraw, SDL_Renderer *render, options *opt)
 	
 	if(toDraw->posAndHitbox.x >= 0 && toDraw->posAndHitbox.x < opt->SCREEN_WIDTH && toDraw->posAndHitbox.y >= 0 && toDraw->posAndHitbox.y < opt->SCREEN_HEIGHT)
 	{
+		if( toDraw->isAnimated == FAIL)
+		{
+			SDL_RenderCopyEx(render, toDraw->deadAnimation, NULL, &(toDraw->posAndHitbox), toDraw->angle, NULL, SDL_FLIP_NONE);
+			
+		}
 		if(toDraw->anim == opt->FRAMES_PER_ANIM && toDraw->isAnimated == SUCCESS)
 		{
 			if(toDraw->frame.x == 0)
@@ -50,11 +55,7 @@ void drawEntity(entity *toDraw, SDL_Renderer *render, options *opt)
 			SDL_RenderCopyEx(render, toDraw->deadAnimation, &(toDraw->frame), &(toDraw->posAndHitbox), toDraw->angle, NULL, SDL_FLIP_NONE);
 			
 		}
-		else 
-		{
-			SDL_RenderCopyEx(render, toDraw->deadAnimation, NULL, &(toDraw->posAndHitbox), toDraw->angle, NULL, SDL_FLIP_NONE);
-			
-		}
+
 		
 		
 	}
@@ -74,7 +75,7 @@ void drawGameButtons(entity **gameButtons, SDL_Renderer *render, options *opt)
 	int looper;
 	for(looper = 0; looper < opt->NO_BUTTONS - 2; looper++)
 	{
-
+		
 		drawEntity(gameButtons[looper], render, opt);
 	
 	}
@@ -93,10 +94,20 @@ void drawArmy(soldiers *toDraw, SDL_Renderer *render, options *opt)
 {
 	int looper;
 	for(looper = 0; looper < toDraw->no_men; looper++)
-	{
-		drawEntity(toDraw->men[looper], render, opt);
-	
+	{	
+		if(toDraw->men[looper]->isAnimated == FAIL)
+		{
+			drawEntity(toDraw->men[looper], render, opt);
+		}
 	}
+	for(looper = 0; looper < toDraw->no_men; looper++)
+	{	
+		if(toDraw->men[looper]->isAnimated == SUCCESS)
+		{
+			drawEntity(toDraw->men[looper], render, opt);
+		}
+	}
+
 
 
 }
@@ -168,7 +179,7 @@ double changeMachineGunAngle(entity *MG, soldiers *opposingArmy, options *opt, i
 	angle = ((atan2(smallY, smallX)* PI_DEG) / PI);
 	quadrant = ((int)angle/PI_DEG * 2) % 4 + 1;
 	
-	if(abs(sqrt((smallX * smallX) + (smallY * smallY))) < opt->MG_RANGE )
+	if(abs(sqrt(abs(smallX * smallX) + abs(smallY * smallY))) < opt->MG_RANGE )
 	{
 		
 		op = bullet->speed * sin((angle * PI) / PI_DEG);

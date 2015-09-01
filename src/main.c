@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 	
 	noDead = 0;
 	oldNoDead = 0;
-	;
+	
 	isSuccess = SUCCESS;
 	inBattle = FAIL;
 	jsonContents = loadJsonFile(OPTIONS_FILE,&isSuccess);
@@ -131,11 +131,10 @@ int main(int argc, char *argv[])
 			moveArmy(bullets);
 			checkCollision(bullets, british, deathSounds, &noDead);
 			checkCollision(bullets, germans, deathSounds, &noDead);
-			
 			drawBaseEntity(map, render);
-			drawArmy(bullets, render, &mainOpt);
 			drawArmy(british, render, &mainOpt);
 			drawArmy(germans, render, &mainOpt);
+			drawArmy(bullets, render, &mainOpt);
 			drawGameButtons(unitElements, render, &mainOpt);
 			germanHP += checkScoreSide(british,0, &mainOpt);
 			britishHP += checkScoreSide(germans, mainOpt.SCREEN_WIDTH, &mainOpt);
@@ -217,6 +216,9 @@ int main(int argc, char *argv[])
 	freeButtons(buttons, &mainOpt);
 	freeSprites(sprites, &mainOpt);
 	freeCorpses(dead, &mainOpt);
+	freeChunks(deathSounds, 6);
+	freeChunks(booms,3);
+	TTF_CloseFont(defaultFont);
 	SDL_DestroyRenderer(render);
 	SDL_DestroyWindow(mainWin);
 	deinit();

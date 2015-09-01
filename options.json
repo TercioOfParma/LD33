@@ -1,7 +1,7 @@
 [
 	{
-		"SCREEN_WIDTH" : 1920,
-		"SCREEN_HEIGHT" : 1080,
+		"SCREEN_WIDTH" : 1280,
+		"SCREEN_HEIGHT" : 720,
 		"QUIT_IMG" : "gfx/quit_button.png",
 		"START_IMG" : "gfx/start_button.png",
 		"TITLE_IMG" : "gfx/title.png",
@@ -34,6 +34,7 @@
 		"MG_RANGE" : 1000,
 		"ARTILLERY_BARRAGE" : 20,
 		"ARTILLERY_SCALE_FACTOR" : 1.25,
-		"STARTING_POINTS" : 20
+		"STARTING_POINTS" : 2000,
+		"MAX_ARMY_SIZE" : 1000
 	}
 ]

@@ -88,7 +88,7 @@ typedef enum
 typedef struct
 {
 	int SCREEN_WIDTH, SCREEN_HEIGHT, SAMPLE_FREQUENCY, NO_CHANNELS, SAMPLE_SIZE,R_COL, G_COL, B_COL, A_COL, NO_BUTTONS, NO_CORPSES, NO_SPRITES, QUIT_OFFSET, BUTTON_TRANSPARENCY, NO_UNITS, NO_SOUNDS, SQUAD_SIZE, HP_PER_SIDE;
-	int ROF, ACCURACY_DEVIATION, OTHER_OFFSET, MG_RANGE, FRAMES_PER_ANIM, ARTILLERY_BARRAGE, STARTING_POINTS;
+	int ROF, ACCURACY_DEVIATION, OTHER_OFFSET, MG_RANGE, FRAMES_PER_ANIM, ARTILLERY_BARRAGE, STARTING_POINTS, MAX_ARMY_SIZE;
 	const char *title_img, *start_button, *quit_button, *title, *sprite_path, *corpses_path, *buttons_path, *map_path;
 	double SCALE_FACTOR, ARTILLERY_SCALE_FACTOR;
 }options;
@@ -162,7 +162,7 @@ void freeEntityArray(entity **array, int size);
 void freeButtons(baseEntity **buttons, options *opt);
 void freeSprites(baseEntity **sprites, options *opt);
 void freeCorpses(baseEntity **corpses, options *opt);
-
+void freeChunks(Mix_Chunk **chunkArray, int size);
 
 //draw functions
 void drawMenuButtons(entity **menuButtons, SDL_Renderer *render, options *opt);

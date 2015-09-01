@@ -109,6 +109,7 @@ options initOptions(const char *jsonFile, int *success)
 	tempOpt.ARTILLERY_BARRAGE = json_integer_value(json_object_get(optionsData,"ARTILLERY_BARRAGE"));
 	tempOpt.SCALE_FACTOR = json_number_value(json_object_get(optionsData,"SCALE_FACTOR"));
 	tempOpt.STARTING_POINTS = json_integer_value(json_object_get(optionsData,"STARTING_POINTS"));
+	tempOpt.MAX_ARMY_SIZE = json_integer_value(json_object_get(optionsData,"MAX_ARMY_SIZE"));
 	tempOpt.ARTILLERY_SCALE_FACTOR = json_number_value(json_object_get(optionsData,"ARTILLERY_SCALE_FACTOR"));
 	
 
@@ -573,13 +574,66 @@ soldiers *createArmy(unitData *mGData, int side, baseEntity *mGText, int *succes
 
 void newSquad(soldiers *army, options *opt, entity *unitType, baseEntity **corpses, int *success, Mix_Chunk **deathsounds)
 {
-	army->men = realloc(army->men, (opt->SQUAD_SIZE + army->no_men) * sizeof(entity *));
-	int looper, new_size, start, corpse, yCoord, deathSound;
+	
+	int looper, new_size, start, corpse, yCoord, deathSound,noWithoutRealloc;
 	baseEntity temp;
 	temp.tex = unitType->liveAnimation;
 	temp.dimensions = unitType->posAndHitbox;
 	start = army->no_men; //end of the array
 	new_size = army->no_men + opt->SQUAD_SIZE;
+	noWithoutRealloc = 0;
+	for(looper = 0; looper < army->no_men ; looper++)
+	{
+		if(army->men[looper]->posAndHitbox.x < 0 - opt->QUIT_OFFSET || army->men[looper]->posAndHitbox.x > opt->SCREEN_WIDTH + opt->QUIT_OFFSET  || army->men[looper]->posAndHitbox.y < 0 - opt->QUIT_OFFSET  || army->men[looper]->posAndHitbox.y > opt->SCREEN_HEIGHT  + opt->QUIT_OFFSET )
+		{
+			army->men[looper]->isAnimated = FAIL;
+		
+		}
+		if(army->men[looper]->isAnimated == FAIL && noWithoutRealloc < opt->SQUAD_SIZE && army->men[looper]->type < 6 && opt->MAX_ARMY_SIZE < new_size)
+		{
+			corpse = rand() % opt->NO_CORPSES;
+			yCoord = rand () % opt->SCREEN_HEIGHT;
+			deathSound = rand() % 6;
+			army->men[looper] = initEntity(unitType->type, unitType->side, temp, *(corpses[corpse]), success, opt);
+			if(unitType->side == GERMAN)
+			{
+				army->men[looper]->angle = 90;
+				army->men[looper]->posAndHitbox.x = opt->OTHER_OFFSET;
+			}
+			else
+			{
+				army->men[looper]->angle = 270;
+				army->men[looper]->posAndHitbox.x = opt->SCREEN_WIDTH - opt->OTHER_OFFSET;
+			}
+			army->men[looper]->posAndHitbox.y = yCoord;
+			army->men[looper]->entranceSound = unitType->entranceSound;
+			army->men[looper]->frame.w = 64;
+			army->men[looper]->frame.h = 64;
+			army->men[looper]->frame.x = 0;
+			army->men[looper]->frame.y = 0;
+			army->men[looper]->deathSound = deathsounds[deathSound];
+			army->men[looper]->isAnimated = SUCCESS;
+			army->men[looper]->speed = unitType->speed;
+			army->men[looper]->side = unitType->side;
+			army->men[looper]->anim = 0;
+			army->men[looper]->scored = FAIL;
+			noWithoutRealloc++;
+		
+		}
+	
+	}
+	Mix_PlayChannel(-1,army->men[looper -1]->entranceSound,0);
+	if(noWithoutRealloc >= opt->SQUAD_SIZE)//cancels if there are enough dead to make new squads
+	{
+			return;
+	}
+	if(opt->MAX_ARMY_SIZE < new_size)//stops bodies + soldiers > 1000
+	{
+			return;
+	}
+	
+	army->men = realloc(army->men, (opt->SQUAD_SIZE + army->no_men - noWithoutRealloc) * sizeof(entity *));
+	new_size = army->no_men + opt->SQUAD_SIZE - noWithoutRealloc;
 	for(looper = start; looper < new_size; looper++)
 	{
 
@@ -614,7 +668,7 @@ void newSquad(soldiers *army, options *opt, entity *unitType, baseEntity **corps
 		
 	}
 	
-	Mix_PlayChannel(-1,army->men[looper -1]->entranceSound,0);
+	
 	
 	army->no_men = new_size;
 
@@ -674,21 +728,65 @@ void killAll(soldiers *army)
 void newBullets(soldiers *army, options *opt, entity *unitType,int *success, Mix_Chunk **sounds, int number, entity *mg, int op, int adj)
 {
 	
-	army->men = realloc(army->men, (number + army->no_men) * sizeof(entity *));
-	int looper, new_size, start, corpse, yCoord, deathSound, holdTime;
+	
+	
+	
+	int looper, new_size, start, corpse, yCoord, deathSound, holdTime, noWithoutRealloc;
 	mg->startTime = SDL_GetTicks();
 	mg->shotTime = mg->startTime - mg->endTime;
-	
-	if(mg->shotTime < opt->ROF )
-	{
-		
-		return;
-	}
+	noWithoutRealloc = 0;
 	baseEntity temp;
 	temp.tex = unitType->liveAnimation;
 	temp.dimensions = unitType->posAndHitbox;
 	start = army->no_men; //end of the array
 	new_size = army->no_men + number;
+	if(mg->shotTime < opt->ROF )
+	{
+		
+		return;
+	}
+	for(looper = 0; looper < army->no_men; looper++)//MUCH MUCH FASTER NOW
+	{
+		if(army->men[looper]->posAndHitbox.x < 0 || army->men[looper]->posAndHitbox.x > opt->SCREEN_WIDTH || army->men[looper]->posAndHitbox.y < 0 || army->men[looper]->posAndHitbox.y > opt->SCREEN_HEIGHT)
+		{
+			army->men[looper]->isAnimated = FAIL;
+		
+		}
+		if(army->men[looper]->isAnimated == FAIL && noWithoutRealloc < number)
+		{
+			noWithoutRealloc++;
+			army->men[looper] = initEntity(unitType->type, unitType->side, temp, temp, success, opt);
+			army->men[looper]->posAndHitbox.y = mg->posAndHitbox.y;
+			army->men[looper]->posAndHitbox.x = mg->posAndHitbox.x;
+			army->men[looper]->frame.x = INVALID_RECT;
+			army->men[looper]->entranceSound = unitType->entranceSound;
+			army->men[looper]->deathSound = unitType->entranceSound;
+			army->men[looper]->isAnimated = SUCCESS;
+			army->men[looper]->speed = unitType->speed;
+			army->men[looper]->side = unitType->side;
+			army->men[looper]->adj = adj;
+			army->men[looper]->op = op;
+			army->men[looper]->angle = 0;
+		
+		}
+	
+	
+	}
+	if(mg->side == BRITISH)
+	{
+		Mix_PlayChannel(1,sounds[1],0);
+	}
+	if(mg->side == GERMAN)
+	{
+		Mix_PlayChannel(1,sounds[2],0);
+	}
+	if( noWithoutRealloc >= number)//means that unneccessary memory isn't alloced
+	{	
+		return;
+	}
+	army->men = realloc(army->men, (number + army->no_men - noWithoutRealloc) * sizeof(entity *));//should limit bullets
+	
+
 	for(looper = start; looper < new_size; looper++)
 	{
 
@@ -708,14 +806,7 @@ void newBullets(soldiers *army, options *opt, entity *unitType,int *success, Mix
 	
 		
 	}
-	if(mg->side == BRITISH)
-	{
-		Mix_PlayChannel(1,sounds[1],0);
-	}
-	if(mg->side == GERMAN)
-	{
-		Mix_PlayChannel(1,sounds[2],0);
-	}
+
 	mg->endTime = SDL_GetTicks();
 	army->no_men = new_size;
 
