@@ -238,7 +238,6 @@ TTF_Font *LoadFont(const char *filename, int size, int *success)
 
 SDL_Texture *loadImage(const char *filename, SDL_Renderer *render, SDL_Rect *dimen,  SDL_Texture *original , options *opt, int *success)
 {
-	SDL_DestroyTexture(original);
 	SDL_Surface *temp;
 	SDL_Texture *tempTex;
 	temp = IMG_Load(filename);
@@ -276,6 +275,8 @@ baseEntity *initBaseEntity(const char *filename, SDL_Renderer *render, int *succ
 	}
 	temp->dimensions.x = 0;
 	temp->dimensions.y = 0;
+	temp->dimensions.w = 0;
+	temp->dimensions.h = 0;
 	
 	if(!temp)
 	{
@@ -302,6 +303,21 @@ entity *initEntity(int desiredType, int side,  baseEntity liveAnimation, baseEnt
 	temp->side = side;
 	temp->liveAnimation = liveAnimation.tex;
 	temp->posAndHitbox = liveAnimation.dimensions;
+	temp->cost = 0;
+	temp->speed = 0;
+	temp->op = 0;
+	temp->adj = 0;
+	temp->anim = 0;
+	temp->shotTime = 0;
+	temp->startTime = 0;
+	temp->scored = 0;
+	temp->posAndHitbox.x = 0;
+	temp->posAndHitbox.y = 0;
+	temp->frame.x = 0;
+	temp->frame.y = 0;
+	temp->frame.w = 0;
+	temp->frame.h = 0;
+	
 	if(deadAnimation.tex != NULL)
 	{
 		temp->deadAnimation = deadAnimation.tex;
@@ -316,12 +332,6 @@ entity *initEntity(int desiredType, int side,  baseEntity liveAnimation, baseEnt
 entity *initTitle(baseEntity animation, int *success, options *opt)
 {
 	entity *temp;
-	if(!temp)
-	{
-		fprintf(stderr, "malloc has failed : %s", strerror(errno));
-		*success = FAIL;
-		return NULL;
-	}
 	temp = initEntity(TITLE, NO_SIDE, animation, animation, success, opt);
 	temp->posAndHitbox.y = (opt->SCREEN_HEIGHT / 5);
 	temp->posAndHitbox.x = (opt->SCREEN_WIDTH / 3);
@@ -462,6 +472,7 @@ entity *loadMachineGun(unitData *mGData, int side, baseEntity *mGTex, int *succe
 
 unitData **loadUnitData(const char *file, int *success, options *opt)
 {
+	
 	unitData **temp = malloc(sizeof(unitData *) * opt->NO_UNITS);
 	json_t *dataHold, *unitEntry;
 	json_error_t errorHandle;
@@ -528,6 +539,7 @@ entity **loadUnits(unitData **data, baseEntity **textures, int *success, options
 	{
 		temp[looper] = initEntity(data[looper]->ID, data[looper]->side, *(textures[looper]), *(textures[looper]), success, opt);
 		temp[looper]->entranceSound = loadEffect(data[looper]->entrance_filename, success);
+		temp[looper]->deathSound = loadEffect(data[looper]->entrance_filename, success);
 		temp[looper]->speed = data[looper]->speed;
 		temp[looper]->cost = data[looper]->cost;
 	}
